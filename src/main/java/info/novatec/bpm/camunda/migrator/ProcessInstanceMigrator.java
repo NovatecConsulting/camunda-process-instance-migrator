@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.camunda.bpm.engine.ProcessEngine;
-import org.camunda.bpm.engine.migration.MigratingProcessInstanceValidationException;
+import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -75,7 +75,7 @@ public class ProcessInstanceMigrator {
                                 processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
                                 processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag());
 
-                    } catch(MigratingProcessInstanceValidationException  e) {
+                    } catch(ProcessEngineException  e) {
                         log.warn("The process instance with the id {} and businessKey {} could not be migrated.",
                                 processInstance.getProcessInstanceId(), processInstance.getBusinessKey());
                     }
