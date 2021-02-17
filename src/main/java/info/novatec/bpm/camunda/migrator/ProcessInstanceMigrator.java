@@ -9,15 +9,10 @@ import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 /**
  * This migrator will, upon deployment, attempt to migrate all existing process instances that come from a process definition with an older version tag.
@@ -27,18 +22,14 @@ import javax.annotation.PostConstruct;
  * - Increase minor version for changes that need a mapping of some kind for migration to work. Include this mapping here to make it work.
  * - Increase major version for changes where no migration is possible or wanted.
  */
-@Component
 @RequiredArgsConstructor
 @Slf4j
-@Profile("migrate-on-startup")
 public class ProcessInstanceMigrator {
 
-    @Autowired
     private final ProcessEngine processEngine;
 
     private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0");
 
-    @PostConstruct
     public void migrateInstancesOfAllProcesses() {
         processEngine.getRepositoryService().createProcessDefinitionQuery()
             .active()
