@@ -1,9 +1,11 @@
 package info.novatec.bpm.camunda.migrator.assertions;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.assertj.core.api.Assertions;
 import org.camunda.bpm.engine.task.Task;
-import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class TaskListAsserter {
@@ -15,8 +17,10 @@ public class TaskListAsserter {
     }
 
     public TaskListAsserter allTasksHaveDefinitionId(String processDefinitionId) {
-        Assertions.assertThat(tasks.stream().allMatch(
-                task -> processDefinitionId.equals(task.getProcessDefinitionId()))).isTrue();
+        Assertions.assertThat(tasks.stream()
+            .allMatch(
+                task -> processDefinitionId.equals(task.getProcessDefinitionId())))
+            .isTrue();
         return this;
     }
 
@@ -26,8 +30,16 @@ public class TaskListAsserter {
     }
 
     public TaskListAsserter allTasksHaveFormkey(String formKey) {
-        Assertions.assertThat(tasks.stream().allMatch(
-                task -> formKey == task.getFormKey()));
+        tasks.stream()
+            .forEach(
+                task -> Assertions.assertThat(formKey).isEqualTo(task.getFormKey()));
+        return this;
+    }
+
+    public TaskListAsserter allTasksHaveKey(String key) {
+        tasks.stream()
+            .forEach(
+                task -> Assertions.assertThat(key).isEqualTo(task.getTaskDefinitionKey()));
         return this;
     }
 }

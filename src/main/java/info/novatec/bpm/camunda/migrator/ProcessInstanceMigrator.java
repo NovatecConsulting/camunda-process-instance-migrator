@@ -1,11 +1,18 @@
 package info.novatec.bpm.camunda.migrator;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.ProcessEngineException;
+import org.camunda.bpm.engine.impl.migration.MigrationInstructionImpl;
+import org.camunda.bpm.engine.impl.migration.MigrationPlanImpl;
+import org.camunda.bpm.engine.migration.MigrationInstruction;
 import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -13,19 +20,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * This migrator will, upon deployment, attempt to migrate all existing process instances that come from a process definition with an older version tag.
- *
- * To enable this, all process models need to be properly versioned:
- * - Increase patch version for simple changes which can be migrated by mapping equal task ids. Migration of those changes should be automatical.
- * - Increase minor version for changes that need a mapping of some kind for migration to work. Include this mapping here to make it work.
- * - Increase major version for changes where no migration is possible or wanted.
+ * This migrator will, upon deployment, attempt to migrate all existing process instances that come from a process
+ * definition with an older version tag. To enable this, all process models need to be properly versioned: 
+ * <ul>
+ * <li> Increase patch version for simple changes which can be migrated by mapping equal task ids. Migration of those changes should work out of the box. 
+ * <li> Increase minor version for changes that need a mapping of some kind for migration to work. Provide these mappings via a {@link MigrationInstructions}-Bean.
+ * <li> Increase major version for changes where no migration is possible or wanted.
+ * </ul>
  */
 @Component
 @RequiredArgsConstructor
@@ -35,6 +41,9 @@ public class ProcessInstanceMigrator {
 
     @Autowired
     private final ProcessEngine processEngine;
+    
+    @Autowired
+    private final MigrationInstructions migrationInstructions;
 
     private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0");
 
@@ -64,6 +73,15 @@ public class ProcessInstanceMigrator {
                 MigrationPlan migrationPlan = null;
                 if (processInstance.getProcessVersion().isOlderPatchThan(newestProcessVersion)) {
                     migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
+                } else if (processInstance.getProcessVersion().isOlderMinorThan(newestProcessVersion)) {
+					List<MinorMigrationInstructions> applicableMinorMigrationInstructions = getApplicableMinorMigrationInstructions(
+							processDefinitionKey, processInstance.getProcessVersion().getMinorVersion(),
+							newestProcessVersion.getMinorVersion(), newestProcessVersion.getMajorVersion());
+					List<MigrationInstruction> executableMigrationInstructions = addMigrationInstructions(
+							applicableMinorMigrationInstructions);
+					migrationPlan = new MigrationPlanImpl(processInstance.getProcessDefinitionId(),
+							newestProcessDefinition.get().getProcessDefinitionId());
+					((MigrationPlanImpl) migrationPlan).setInstructions(executableMigrationInstructions);
                 }
                 if (migrationPlan != null) {
                     try {
@@ -149,6 +167,61 @@ public class ProcessInstanceMigrator {
         return Optional.ofNullable(latestProcessDefinition).map(processDefinition ->
                     new VersionedDefinitionId(ProcessVersion.fromString(processDefinition.getVersionTag()), processDefinition.getId()));
     }
+    
+	private List<MinorMigrationInstructions> getApplicableMinorMigrationInstructions(String processDefinitionKey,
+			int sourceMinorVersion, int targetMinorVersion, int majorVersion) {
+		if (migrationInstructions.getMigrationInstructionMap().containsKey(processDefinitionKey))
+			return migrationInstructions.getMigrationInstructionMap().get(processDefinitionKey).stream()
+					.filter(minorMigrationInstructions -> minorMigrationInstructions
+							.getTargetMinorVersion() <= targetMinorVersion
+							&& minorMigrationInstructions.getSourceMinorVersion() >= sourceMinorVersion
+							&& minorMigrationInstructions.getMajorVersion() == majorVersion)
+					.collect(Collectors.toList());
+		else {
+			return null;
+		}
+	}
+
+	private List<MigrationInstruction> addMigrationInstructions(
+			List<MinorMigrationInstructions> applicableMinorMigrationInstructions) {
+		List<MigrationInstruction> instructionList = new ArrayList<>();
+		if (applicableMinorMigrationInstructions != null && !applicableMinorMigrationInstructions.isEmpty()) {
+			applicableMinorMigrationInstructions.stream()
+					.sorted(Comparator.comparingInt(MinorMigrationInstructions::getSourceMinorVersion))
+					// check every applicable minor-migration
+					.forEach(
+							minorMigrationInstructions -> minorMigrationInstructions.getMigrationInstructions().stream()
+									// go through all instructions for every migration
+									.forEach(migrationInstruction -> {
+										// check if a migration instruction exists, that has that migrationInstructions
+										// source as a target
+										boolean migrationInstructionWasAlreadySet = false;
+										MigrationInstruction instructionToReplace = null;
+										for (MigrationInstruction alreadySetInstruction : instructionList) {
+											if (alreadySetInstruction.getTargetActivityId() == migrationInstruction
+													.getSourceActivityId()) {
+												migrationInstructionWasAlreadySet = true;
+												instructionToReplace = alreadySetInstruction;
+											}
+										}
+										// if such a migration instruction exists, remove it and replace it with a
+										// combined instruction
+										if (migrationInstructionWasAlreadySet && instructionToReplace != null) {
+											instructionList.remove(instructionToReplace);
+											instructionList.add(new MigrationInstructionImpl(
+													instructionToReplace.getSourceActivityId(),
+													migrationInstruction.getTargetActivityId()));
+										}
+										// if the migration does not exist, add it to the list
+										else {
+											instructionList.add(new MigrationInstructionImpl(
+													migrationInstruction.getSourceActivityId(),
+													migrationInstruction.getTargetActivityId()));
+										}
+									}));
+		}
+		return instructionList;
+	}
 
     @Getter
     @RequiredArgsConstructor
