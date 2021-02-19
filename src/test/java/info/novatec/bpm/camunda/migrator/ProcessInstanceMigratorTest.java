@@ -3,6 +3,8 @@ package info.novatec.bpm.camunda.migrator;
 import static info.novatec.bpm.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
 import static info.novatec.bpm.camunda.migrator.assertions.TaskListAsserter.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.complete;
+import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.task;
 
 import java.util.Arrays;
 import java.util.List;
@@ -236,6 +238,39 @@ public class ProcessInstanceMigratorTest {
             .allTasksHaveKey("UserTask2")
             .allTasksHaveFormkey("Formkey2");
     }
+    
+    @Test
+    public void processInstanceMigrator_should_not_migrate_if_migration_to_higher_minor_version_has_faulty_migration_instructions() {
+        deployBPMNFromClasspathResource(MINOR_INCREASED_PROCESS_MODEL_PATH);
+        newestProcessDefinitionAfterRedeployment = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
+        assertThat(newestProcessDefinitionAfterRedeployment.getVersionTag()).isEqualTo("1.5.0");
+
+        assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+            .numberOfProcessInstancesIs(2)
+            .allProcessInstancesHaveDefinitionId(initialProcessDefinition.getId());
+
+        assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+            .numberOfTasksIs(2)
+            .allTasksHaveDefinitionId(initialProcessDefinition.getId())
+            .allTasksHaveKey("UserTask1")
+            .allTasksHaveFormkey(null);
+
+		processInstanceMigrator = new ProcessInstanceMigrator(rule.getProcessEngine(),
+				new MigrationInstructions.Builder()
+						.putInstructions(PROCESS_DEFINITION_KEY, generateFaultyMigrationInstructionsFor100To150())
+						.build());
+        processInstanceMigrator.migrateProcessInstances(PROCESS_DEFINITION_KEY);
+
+        assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+	        .numberOfProcessInstancesIs(2)
+	        .allProcessInstancesHaveDefinitionId(initialProcessDefinition.getId());
+
+        assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+	        .numberOfTasksIs(2)
+	        .allTasksHaveDefinitionId(initialProcessDefinition.getId())
+	        .allTasksHaveKey("UserTask1")
+	        .allTasksHaveFormkey(null);
+    }
 
     @Test
     public void processInstanceMigrator_should_migrate_to_higher_minor_by_adding_up_migration_instructions() {
@@ -280,11 +315,14 @@ public class ProcessInstanceMigratorTest {
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
 	        .numberOfProcessInstancesIs(2)
 	        .allProcessInstancesHaveDefinitionId(initialProcessDefinition.getId());
+        
+        complete(task(processInstance1));
 	
 	    assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
 	        .numberOfTasksIs(2)
 	        .allTasksHaveDefinitionId(initialProcessDefinition.getId())
-	        .allTasksHaveKey("UserTask1")
+	        .oneTaskHasKey("UserTask1")
+	        .oneTaskHasKey("UserTask2")
 	        .allTasksHaveFormkey(null);
 	
 		processInstanceMigrator = new ProcessInstanceMigrator(rule.getProcessEngine(),
@@ -336,6 +374,15 @@ public class ProcessInstanceMigratorTest {
         		.sourceMinorVersion(0)
         		.targetMinorVersion(5)
         		.migrationInstructions(Arrays.asList(new MigrationInstructionImpl("UserTask1", "UserTask2")))
+        		.majorVersion(1)
+        		.build());
+    }
+    
+    private List<MinorMigrationInstructions> generateFaultyMigrationInstructionsFor100To150() {
+        return Arrays.asList(MinorMigrationInstructions.builder()
+        		.sourceMinorVersion(0)
+        		.targetMinorVersion(5)
+        		.migrationInstructions(Arrays.asList(new MigrationInstructionImpl("UserTask1", "UserTask6")))
         		.majorVersion(1)
         		.build());
     }

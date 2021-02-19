@@ -9,9 +9,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.camunda.bpm.engine.ProcessEngine;
-import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.impl.migration.MigrationInstructionImpl;
-import org.camunda.bpm.engine.impl.migration.MigrationPlanImpl;
 import org.camunda.bpm.engine.migration.MigrationInstruction;
 import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
@@ -74,14 +72,16 @@ public class ProcessInstanceMigrator {
                 if (processInstance.getProcessVersion().isOlderPatchThan(newestProcessVersion)) {
                     migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
                 } else if (processInstance.getProcessVersion().isOlderMinorThan(newestProcessVersion)) {
+                	migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
+                	
 					List<MinorMigrationInstructions> applicableMinorMigrationInstructions = getApplicableMinorMigrationInstructions(
 							processDefinitionKey, processInstance.getProcessVersion().getMinorVersion(),
 							newestProcessVersion.getMinorVersion(), newestProcessVersion.getMajorVersion());
+					
 					List<MigrationInstruction> executableMigrationInstructions = addMigrationInstructions(
 							applicableMinorMigrationInstructions);
-					migrationPlan = new MigrationPlanImpl(processInstance.getProcessDefinitionId(),
-							newestProcessDefinition.get().getProcessDefinitionId());
-					((MigrationPlanImpl) migrationPlan).setInstructions(executableMigrationInstructions);
+					
+					migrationPlan.getInstructions().addAll(executableMigrationInstructions);
                 }
                 if (migrationPlan != null) {
                     try {
@@ -93,7 +93,7 @@ public class ProcessInstanceMigrator {
                                 processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
                                 processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag());
 
-                    } catch(ProcessEngineException  e) {
+                    } catch(RuntimeException  e) {
                         log.warn("The process instance with the id {} and businessKey {} could not be migrated.",
                                 processInstance.getProcessInstanceId(), processInstance.getBusinessKey());
                     }
@@ -109,7 +109,7 @@ public class ProcessInstanceMigrator {
         logExistingProcessInstanceInfos(processDefinitionKey);
     }
 
-    private MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {
+	private MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {
         return processEngine.getRuntimeService()
                 .createMigrationPlan(processInstance.getProcessDefinitionId(), newestProcessDefinition.getProcessDefinitionId())
                 .mapEqualActivities()

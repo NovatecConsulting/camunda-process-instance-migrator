@@ -42,4 +42,10 @@ public class TaskListAsserter {
                 task -> Assertions.assertThat(key).isEqualTo(task.getTaskDefinitionKey()));
         return this;
     }
+    
+    public TaskListAsserter oneTaskHasKey(String key) {
+    	tasks.stream()
+    		.anyMatch(task -> key.equals(task.getTaskDefinitionKey()));
+    	return this;
+    }
 }

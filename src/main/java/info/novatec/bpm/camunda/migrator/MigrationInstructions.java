@@ -13,7 +13,8 @@ import lombok.Getter;
  * {@link ProcessInstanceMigrator}, even if no instructions are specified.
  */
 @Getter
-public class MigrationInstructions {
+public class MigrationInstructions //für alle Prozessdefinitionen: für alle Minor-Migrationen: alle Instruktionen 
+{
 	    
 	private Map<String, List<MinorMigrationInstructions>> migrationInstructionMap;
 	
