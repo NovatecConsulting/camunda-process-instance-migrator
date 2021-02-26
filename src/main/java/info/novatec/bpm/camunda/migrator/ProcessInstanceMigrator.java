@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.impl.migration.MigrationInstructionImpl;
 import org.camunda.bpm.engine.migration.MigrationInstruction;
@@ -18,10 +16,6 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This migrator will, upon deployment, attempt to migrate all existing process instances that come from a process
@@ -38,7 +32,6 @@ public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
     
-    @Autowired
     private final MigrationInstructions migrationInstructions;
 
     private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0");
