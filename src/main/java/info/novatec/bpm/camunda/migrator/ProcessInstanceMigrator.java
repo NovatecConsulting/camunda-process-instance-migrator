@@ -14,13 +14,14 @@ import org.camunda.bpm.engine.migration.MigrationInstruction;
 import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This migrator will, upon deployment, attempt to migrate all existing process instances that come from a process
@@ -31,13 +32,10 @@ import lombok.extern.slf4j.Slf4j;
  * <li> Increase major version for changes where no migration is possible or wanted.
  * </ul>
  */
-@Component
 @RequiredArgsConstructor
 @Slf4j
-@Profile("migrate-on-startup")
 public class ProcessInstanceMigrator {
 
-    @Autowired
     private final ProcessEngine processEngine;
     
     @Autowired
@@ -45,7 +43,6 @@ public class ProcessInstanceMigrator {
 
     private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0");
 
-    @PostConstruct
     public void migrateInstancesOfAllProcesses() {
         processEngine.getRepositoryService().createProcessDefinitionQuery()
             .active()
