@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.migration.MigrationPlan;
+import org.camunda.bpm.engine.migration.MigrationPlanBuilder;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 
@@ -82,11 +83,14 @@ public class ProcessInstanceMigrator {
     }
 
     private MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {
-        return processEngine.getRuntimeService()
-                .createMigrationPlan(processInstance.getProcessDefinitionId(), newestProcessDefinition.getProcessDefinitionId())
-                .mapEqualActivities()
-                .updateEventTriggers()
-                .build();
+    	List<String> activityIds = processEngine.getRuntimeService().getActiveActivityIds(processInstance.getProcessInstanceId());
+    	
+        MigrationPlanBuilder migrationPlanBuilder = processEngine.getRuntimeService()
+                .createMigrationPlan(processInstance.getProcessDefinitionId(), newestProcessDefinition.getProcessDefinitionId());
+        for (String activityId : activityIds) {
+        	migrationPlanBuilder = migrationPlanBuilder.mapActivities(activityId, activityId);
+        }
+        return migrationPlanBuilder.build();
     }
 
     private void logExistingProcessInstanceInfos(String processDefinitionKey) {
