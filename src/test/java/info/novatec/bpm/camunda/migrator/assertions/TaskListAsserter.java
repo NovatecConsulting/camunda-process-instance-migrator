@@ -30,4 +30,10 @@ public class TaskListAsserter {
                 task -> formKey == task.getFormKey()));
         return this;
     }
+    
+    public TaskListAsserter allTasksHaveName(String name) {
+        Assertions.assertThat(tasks.stream().allMatch(
+                task -> name == task.getName()));
+        return this;
+    }
 }

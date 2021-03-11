@@ -55,6 +55,13 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<dependency>
+		    <groupId>org.camunda.bpm.assert</groupId>
+		    <artifactId>camunda-bpm-assert</artifactId>
+		    <version>8.0.0</version>
+		    <scope>test</scope>
+		</dependency>
+		
 		<!-- Project Lombok requires IDE extension! -->
 		<dependency>
             <groupId>org.projectlombok</groupId>
