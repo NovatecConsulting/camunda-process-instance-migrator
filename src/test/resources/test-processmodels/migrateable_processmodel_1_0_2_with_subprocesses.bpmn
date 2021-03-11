@@ -7,31 +7,31 @@
     <bpmn:endEvent id="EndEvent_0vgdufb" name="Process ended">
       <bpmn:incoming>Flow_060d9ij</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:subProcess id="ReceiveTask1_subprocess" name="Message-Subprocess">
+    <bpmn:subProcess id="ReceiveTask1" name="Message-Subprocess">
       <bpmn:incoming>Flow_0tzct40</bpmn:incoming>
       <bpmn:outgoing>Flow_060d9ij</bpmn:outgoing>
-      <bpmn:receiveTask id="ReceiveTask1" name="Wait for Message">
+      <bpmn:receiveTask id="ReceiveTask1_sub" name="Wait for Message">
         <bpmn:incoming>Flow_0nknur1</bpmn:incoming>
       </bpmn:receiveTask>
       <bpmn:startEvent id="Event_1uunx2g">
         <bpmn:outgoing>Flow_0nknur1</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="Flow_0nknur1" sourceRef="Event_1uunx2g" targetRef="ReceiveTask1" />
+      <bpmn:sequenceFlow id="Flow_0nknur1" sourceRef="Event_1uunx2g" targetRef="ReceiveTask1_sub" />
     </bpmn:subProcess>
-    <bpmn:sequenceFlow id="Flow_060d9ij" sourceRef="ReceiveTask1_subprocess" targetRef="EndEvent_0vgdufb" />
-    <bpmn:subProcess id="UserTask1_subprocess" name="User-Subprocess">
+    <bpmn:sequenceFlow id="Flow_060d9ij" sourceRef="ReceiveTask1" targetRef="EndEvent_0vgdufb" />
+    <bpmn:subProcess id="UserTask1" name="User-Subprocess">
       <bpmn:incoming>Flow_03k6anc</bpmn:incoming>
       <bpmn:outgoing>Flow_0tzct40</bpmn:outgoing>
-      <bpmn:userTask id="UserTask1" name="Do something" camunda:formKey="Formkey1">
+      <bpmn:userTask id="UserTask1_sub" name="Do something" camunda:formKey="Formkey1">
         <bpmn:incoming>Flow_1h0ghgb</bpmn:incoming>
       </bpmn:userTask>
       <bpmn:startEvent id="Event_07ij98v">
         <bpmn:outgoing>Flow_1h0ghgb</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="Flow_1h0ghgb" sourceRef="Event_07ij98v" targetRef="UserTask1" />
+      <bpmn:sequenceFlow id="Flow_1h0ghgb" sourceRef="Event_07ij98v" targetRef="UserTask1_sub" />
     </bpmn:subProcess>
-    <bpmn:sequenceFlow id="Flow_03k6anc" sourceRef="StartEvent_1" targetRef="UserTask1_subprocess" />
-    <bpmn:sequenceFlow id="Flow_0tzct40" sourceRef="UserTask1_subprocess" targetRef="ReceiveTask1_subprocess" />
+    <bpmn:sequenceFlow id="Flow_03k6anc" sourceRef="StartEvent_1" targetRef="UserTask1" />
+    <bpmn:sequenceFlow id="Flow_0tzct40" sourceRef="UserTask1" targetRef="ReceiveTask1" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="MigrateableProcess">
@@ -59,7 +59,7 @@
           <dc:Bounds x="152" y="192" width="77" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1p1yi5u_di" bpmnElement="UserTask1_subprocess" isExpanded="true">
+      <bpmndi:BPMNShape id="Activity_1p1yi5u_di" bpmnElement="UserTask1" isExpanded="true">
         <dc:Bounds x="290" y="85" width="260" height="165" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1h0ghgb_di" bpmnElement="Flow_1h0ghgb">
@@ -69,17 +69,17 @@
       <bpmndi:BPMNShape id="Event_07ij98v_di" bpmnElement="Event_07ij98v">
         <dc:Bounds x="312" y="152" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_12twcyc_di" bpmnElement="UserTask1">
+      <bpmndi:BPMNShape id="UserTask_12twcyc_di" bpmnElement="UserTask1_sub">
         <dc:Bounds x="380" y="130" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_106v9t2_di" bpmnElement="ReceiveTask1_subprocess" isExpanded="true">
+      <bpmndi:BPMNShape id="Activity_106v9t2_di" bpmnElement="ReceiveTask1" isExpanded="true">
         <dc:Bounds x="640" y="85" width="260" height="163" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0nknur1_di" bpmnElement="Flow_0nknur1">
         <di:waypoint x="718" y="170" />
         <di:waypoint x="750" y="170" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_0haxaoi_di" bpmnElement="ReceiveTask1">
+      <bpmndi:BPMNShape id="Activity_0haxaoi_di" bpmnElement="ReceiveTask1_sub">
         <dc:Bounds x="750" y="130" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1uunx2g_di" bpmnElement="Event_1uunx2g">

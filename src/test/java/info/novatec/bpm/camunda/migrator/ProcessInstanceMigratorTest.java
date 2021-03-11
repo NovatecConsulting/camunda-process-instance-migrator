@@ -114,7 +114,7 @@ public class ProcessInstanceMigratorTest {
     }
     
     @Test
-    public void processInstanceMigrator_should_migrate_process_instances_sitting_at_user_tasks_to_higher_patch_if_target_is_in_subprocess() {
+    public void processInstanceMigrator_should_not_migrate_process_instances_sitting_at_user_tasks_to_higher_patch_if_target_is_in_subprocess() {
         deployBPMNFromClasspathResource(UPDATED_PROCESS_MODEL_PATH_WITH_SUBPROCESSES);
         ProcessDefinition newestProcessDefinitionAfterRedeployment = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
         assertThat(newestProcessDefinitionAfterRedeployment.getVersionTag()).isEqualTo("1.0.2");
@@ -133,17 +133,17 @@ public class ProcessInstanceMigratorTest {
 
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
             .numberOfProcessInstancesIs(2)
-            .allProcessInstancesHaveDefinitionId(newestProcessDefinitionAfterRedeployment.getId());
+            .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
 
         assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
             .numberOfTasksIs(2)
-            .allTasksHaveDefinitionId(newestProcessDefinitionAfterRedeployment.getId())
+            .allTasksHaveDefinitionId(newestProcessDefinition.getId())
             .allTasksHaveName("Do something")
-            .allTasksHaveFormkey("Formkey1");
+            .allTasksHaveFormkey(null);
     }
     
     @Test
-    public void processInstanceMigrator_should_migrate_process_instances_sitting_at_receive_tasks_to_higher_patch_if_target_is_in_subprocess() {
+    public void processInstanceMigrator_should_not_migrate_process_instances_sitting_at_receive_tasks_to_higher_patch_if_target_is_in_subprocess() {
         deployBPMNFromClasspathResource(UPDATED_PROCESS_MODEL_PATH_WITH_SUBPROCESSES);
         ProcessDefinition newestProcessDefinitionAfterRedeployment = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
         assertThat(newestProcessDefinitionAfterRedeployment.getVersionTag()).isEqualTo("1.0.2");
@@ -162,7 +162,7 @@ public class ProcessInstanceMigratorTest {
 
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
             .numberOfProcessInstancesIs(2)
-            .allProcessInstancesHaveDefinitionId(newestProcessDefinitionAfterRedeployment.getId());
+            .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
 
         assertThat(processInstance1).isWaitingAtExactly("ReceiveTask1");
         assertThat(processInstance2).isWaitingAtExactly("ReceiveTask1");
