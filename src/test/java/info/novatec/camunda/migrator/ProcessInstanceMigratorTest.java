@@ -1,7 +1,4 @@
-package info.novatec.bpm.camunda.migrator;
-
-import static info.novatec.bpm.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
-import static info.novatec.bpm.camunda.migrator.assertions.TaskListAsserter.assertThat;
+package info.novatec.camunda.migrator;
 
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -14,6 +11,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static info.novatec.camunda.migrator.assertions.TaskListAsserter.assertThat;
+import static info.novatec.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.complete;

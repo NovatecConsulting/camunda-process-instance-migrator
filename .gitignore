@@ -27,3 +27,7 @@ nbdist/
 .nb-gradle/
 
 camunda-db.mv.db
+
+### RELEASE ###
+pom.xml.releaseBackup
+release.properties

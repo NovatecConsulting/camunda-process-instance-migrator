@@ -1,4 +1,4 @@
-package info.novatec.bpm.camunda.migrator;
+package info.novatec.camunda.migrator;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

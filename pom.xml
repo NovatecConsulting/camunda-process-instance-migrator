@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!--
@@ -20,15 +18,46 @@
 		limitations under the License.
 	-->
 	
-	<groupId>info.novatec.bpm</groupId>
+	<groupId>info.novatec</groupId>
 	<artifactId>camunda-process-instance-migrator</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<name>Camunda Process Instance Migrator</name>
 	<description>Process Instance Migrator for Camunda BPM</description>
+	<url>https://github.com/NovatecConsulting/camunda-process-instance-migrator</url>
 	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	
+	<scm>
+		<url>https://github.com/NovatecConsulting/camunda-process-instance-migrator</url>
+		<connection>scm:git:git:/github.com/NovatecConsulting/camunda-process-instance-migrator.git</connection>
+		<developerConnection>scm:git:git@github.com:NovatecConsulting/camunda-process-instance-migrator.git</developerConnection>
+		<tag>1.0.0</tag>
+	</scm>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Sonatype Nexus snapshot repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>sonatype-nexus-staging</id> 
+			<name>Sonatype Nexus release repository</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>		
+	</distributionManagement>
+		
 	<properties>
 		<camunda.version>7.14.0</camunda.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>		
 	</properties>
@@ -70,4 +99,150 @@
             <scope>provided</scope>            
         </dependency>
 	</dependencies>
+	
+	<build>
+		<resources>
+			<resource>
+				<directory>${project.basedir}</directory>
+				<includes>
+					<include>README*</include>
+					<include>NOTICE*</include>
+					<include>LICENSE*</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<!-- Optional: ensure the manifest contains artifact version information: -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Required: source JAR -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Required: javadoc JAR -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadoc</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Release configuration: -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5</version>
+
+				<configuration>
+					<!-- Automated passphrase entry: -->
+
+					<!-- To pass your passphrase to the build automatically, so avoiding 
+						manual interaction, you'll need to put the passphrase into settings.xml. 
+						You don't really want that to be in plain text, so you'll want to follow: 
+						http://maven.apache.org/guides/mini/guide-encryption.html -->
+					<!-- <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments> -->
+
+					<!-- Manual passphrase entry: -->
+
+					<!-- This is the simplest secure solution, but requires you to type 
+						your key passphrase in manually when performing a release. No biggie unless 
+						you want your CI server to decide when to release for you. -->
+					<mavenExecutorId>forked-path</mavenExecutorId>
+
+				</configuration>
+			</plugin>
+			
+			<!-- Deployment -->
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>localhost-nexus-staging</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+
+		<!-- GPG Signature on release -->
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
+
+	<!-- Required: developer information: -->
+	<developers>
+		<developer>
+			<id>BenFuernrohr</id>
+			<name>Benjamin Fuernrohr</name>
+			<email>Benjamin.Fuernrohr@novatec-consulting.de</email>
+			<organization>Nocatec Consulting GmbH</organization>
+			<organizationUrl>https://www.novatec-gmbh.de/</organizationUrl>
+			<url>https://github.com/NovatecConsulting</url>
+		</developer>
+	</developers>
 </project>
