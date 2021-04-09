@@ -20,7 +20,7 @@
 	
 	<groupId>info.novatec</groupId>
 	<artifactId>camunda-process-instance-migrator</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 
 	<name>Camunda Process Instance Migrator</name>
 	<description>Process Instance Migrator for Camunda BPM</description>
