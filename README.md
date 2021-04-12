@@ -27,7 +27,16 @@ In order to use the migrator, all your process models need to be properly versio
     * Moving Activities in to Sub Processes
 * The major level should be increased whenever a change is conducted where, for technical or other reasons, no migration is wanted.
 
-After adding the dependency, you need to initialise the migrator by injecting the only dependency to it, Camundas ProcessEngine. For example:
+First, add the dependency:
+
+```xml
+<dependency>
+    <groupId>info.novatec</groupId>
+    <artifactId>camunda-process-instance-migrator</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+Secondly, initialise the migrator by injecting the only dependency to it, Camundas ProcessEngine. For example:
 
 ```java
 @Configuration
