@@ -17,12 +17,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.complete;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.task;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class ProcessInstanceMigratorTest {
 
     @ClassRule
     public static ProcessEngineRule rule = new ProcessEngineRule();
 
+    private static final String NON_MIGRATEABLE_PROCESS_MODEL_WITHOUT_VERSION = "test-processmodels/migrateable_processmodel_without_version.bpmn";
     private static final String MIGRATEABLE_PROCESS_MODEL_PATH = "test-processmodels/migrateable_processmodel_1_0_0.bpmn";
     private static final String UPDATED_PROCESS_MODEL_PATH = "test-processmodels/migrateable_processmodel_1_0_1_with_formkeys.bpmn";
     private static final String UPDATED_PROCESS_MODEL_PATH_WITH_SUBPROCESSES = "test-processmodels/migrateable_processmodel_1_0_2_with_subprocesses.bpmn";
@@ -50,11 +52,8 @@ public class ProcessInstanceMigratorTest {
 
     @After
     public void cleanUp() {
-        rule.getRuntimeService().deleteProcessInstance(processInstance1.getId(), "noReason");
-        rule.getRuntimeService().deleteProcessInstance(processInstance2.getId(), "noReason");
-
         rule.getRepositoryService().createDeploymentQuery().list().forEach(
-                deployment -> rule.getRepositoryService().deleteDeployment(deployment.getId()));
+                deployment -> rule.getRepositoryService().deleteDeployment(deployment.getId(), true));
     }
 
     @Test
@@ -309,6 +308,75 @@ public class ProcessInstanceMigratorTest {
             .numberOfTasksIs(2)
             .allTasksHaveDefinitionId(newestProcessDefinition.getId())
             .allTasksHaveFormkey(null);
+    }
+    
+    @Test
+    public void processInstanceMigrator_should_not_migrate_process_instances_to_models_without_version_tag() {
+    	deployBPMNFromClasspathResource(NON_MIGRATEABLE_PROCESS_MODEL_WITHOUT_VERSION);
+        ProcessDefinition newestProcessDefinitionAfterRedeployment = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
+        assertThat(newestProcessDefinitionAfterRedeployment.getVersionTag()).isEqualTo(null);
+
+        assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+            .numberOfProcessInstancesIs(2)
+            .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
+
+        assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+            .numberOfTasksIs(2)
+            .allTasksHaveDefinitionId(newestProcessDefinition.getId())
+            .allTasksHaveFormkey(null);
+
+        processInstanceMigrator.migrateProcessInstances(PROCESS_DEFINITION_KEY);
+
+        assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+            .numberOfProcessInstancesIs(2)
+            .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
+
+        assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+            .numberOfTasksIs(2)
+            .allTasksHaveDefinitionId(newestProcessDefinition.getId())
+            .allTasksHaveFormkey(null);
+    }
+    
+    @Test
+    public void processInstanceMigrator_should_not_fail_if_only_process_models_without_version_tag_exist() {
+    	cleanUp();
+    	deployBPMNFromClasspathResource(NON_MIGRATEABLE_PROCESS_MODEL_WITHOUT_VERSION);
+    	
+    	assertDoesNotThrow(() -> processInstanceMigrator.migrateProcessInstances(PROCESS_DEFINITION_KEY));
+    }
+    
+    @Test
+    public void processInstanceMigrator_should_not_migrate_instances_from_process_models_without_version_tag() {
+    	cleanUp();
+    	deployBPMNFromClasspathResource(NON_MIGRATEABLE_PROCESS_MODEL_WITHOUT_VERSION);
+    	processInstance1 = startProcessInstance(PROCESS_DEFINITION_KEY);
+        processInstance2 = startProcessInstance(PROCESS_DEFINITION_KEY);
+        newestProcessDefinition = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
+        assertThat(newestProcessDefinition.getVersionTag()).isEqualTo(null);
+        
+        deployBPMNFromClasspathResource(UPDATED_PROCESS_MODEL_PATH);
+        ProcessDefinition newestProcessDefinitionAfterRedeployment = getNewestDeployedProcessDefinitionId(PROCESS_DEFINITION_KEY);
+        assertThat(newestProcessDefinitionAfterRedeployment.getVersionTag()).isEqualTo("1.0.1");
+        
+        assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+	        .numberOfProcessInstancesIs(2)
+	        .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
+
+	    assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+	        .numberOfTasksIs(2)
+	        .allTasksHaveDefinitionId(newestProcessDefinition.getId())
+	        .allTasksHaveFormkey(null);
+    	
+    	processInstanceMigrator.migrateProcessInstances(PROCESS_DEFINITION_KEY);
+    	
+    	assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY))
+	        .numberOfProcessInstancesIs(2)
+	        .allProcessInstancesHaveDefinitionId(newestProcessDefinition.getId());
+	
+	    assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY))
+	        .numberOfTasksIs(2)
+	        .allTasksHaveDefinitionId(newestProcessDefinition.getId())
+	        .allTasksHaveFormkey(null);
     }
 
     private void suspendProcessInstance(ProcessInstance processInstance) {

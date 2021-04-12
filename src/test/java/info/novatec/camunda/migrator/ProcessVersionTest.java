@@ -14,6 +14,15 @@ public class ProcessVersionTest {
         assertThat(processVersion.getMinorVersion()).isEqualTo(3);
         assertThat(processVersion.getPatchVersion()).isEqualTo(5);
     }
+    
+    @Test
+    void fromString_should_return_000_version_if_string_is_null(){
+    	ProcessVersion processVersion = ProcessVersion.fromString(null);
+    	
+    	assertThat(processVersion.getMajorVersion()).isEqualTo(0);
+        assertThat(processVersion.getMinorVersion()).isEqualTo(0);
+        assertThat(processVersion.getPatchVersion()).isEqualTo(0);
+    }
 
     @Test
     void toVersionTag_should_create_string_from_major_minor_and_patch_version() {

@@ -44,7 +44,9 @@ public class ProcessInstanceMigrator {
         Optional<VersionedDefinitionId> newestProcessDefinition = getNewestDeployedVersion(processDefinitionKey);
         if (!newestProcessDefinition.isPresent()) {
             log.info("No process definition with key {} deployed. No instances will be migrated", processDefinitionKey);
-        } else {
+        } else if (newestProcessDefinition.get().getProcessVersion().isOlderVersionThan(OLDEST_RELEASED_VERSION)) {
+        	log.info("No process definitions with version newer than version 1.0.0 deployed. No instances will be migrated");
+    	} else {
             ProcessVersion newestProcessVersion = newestProcessDefinition.get().getProcessVersion();
             log.info("Newest version for process definition key {} is {}. Attempting migration.", processDefinitionKey, newestProcessVersion.toVersionTag());
 
