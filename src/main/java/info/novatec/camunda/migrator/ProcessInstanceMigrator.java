@@ -32,6 +32,7 @@ public class ProcessInstanceMigrator {
     public void migrateInstancesOfAllProcesses() {
         processEngine.getRepositoryService().createProcessDefinitionQuery()
             .active()
+            .latestVersion()
             .list()
             .forEach(processDefinition -> migrateProcessInstances(processDefinition.getKey()));
     }
