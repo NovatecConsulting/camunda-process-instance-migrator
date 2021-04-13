@@ -11,9 +11,9 @@ public class ProcessVersion {
     private final int patchVersion;
 
     public static ProcessVersion fromString(String versionString) {
-    	if (versionString == null) {
-    		return new ProcessVersion(0,0,0);
-    	}
+        if (versionString == null) {
+           return new ProcessVersion(0, 0, 0);
+        }
         String[] stringArray = versionString.split("\\.");
         int majorVersion = Integer.valueOf(stringArray[0]);
         int minorVersion = Integer.valueOf(stringArray[1]);
