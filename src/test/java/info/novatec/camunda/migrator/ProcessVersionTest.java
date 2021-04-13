@@ -1,14 +1,16 @@
 package info.novatec.camunda.migrator;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.assertj.core.api.Assertions.*;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
 
 public class ProcessVersionTest {
 
     @Test
     void fromString_should_parse_major_minor_and_patch_versions_from_string_correctly(){
-        ProcessVersion processVersion = ProcessVersion.fromString("1.3.5");
+        ProcessVersion processVersion = ProcessVersion.fromString("1.3.5").get();
 
         assertThat(processVersion.getMajorVersion()).isEqualTo(1);
         assertThat(processVersion.getMinorVersion()).isEqualTo(3);
@@ -16,12 +18,10 @@ public class ProcessVersionTest {
     }
     
     @Test
-    void fromString_should_return_000_version_if_string_is_null(){
-    	ProcessVersion processVersion = ProcessVersion.fromString(null);
+    void fromString_should_return_empty_optional_if_string_is_null(){
+    	Optional<ProcessVersion> processVersion = ProcessVersion.fromString(null);
     	
-    	assertThat(processVersion.getMajorVersion()).isEqualTo(0);
-        assertThat(processVersion.getMinorVersion()).isEqualTo(0);
-        assertThat(processVersion.getPatchVersion()).isEqualTo(0);
+    	assertThat(processVersion.isPresent()).isFalse();
     }
 
     @Test
@@ -33,7 +33,7 @@ public class ProcessVersionTest {
 
     @Test
     void fromString_toVersionTag_should_result_in_original_String(){
-        assertThat(ProcessVersion.fromString("1.3.5").toVersionTag()).isEqualTo("1.3.5");
+        assertThat(ProcessVersion.fromString("1.3.5").get().toVersionTag()).isEqualTo("1.3.5");
     }
 
     @Test

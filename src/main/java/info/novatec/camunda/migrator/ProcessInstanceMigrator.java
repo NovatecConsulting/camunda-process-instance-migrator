@@ -27,7 +27,7 @@ public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
 
-    private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0");
+    private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0").get();
 
     public void migrateInstancesOfAllProcesses() {
         processEngine.getRepositoryService().createProcessDefinitionQuery()
@@ -44,10 +44,10 @@ public class ProcessInstanceMigrator {
         Optional<VersionedDefinitionId> newestProcessDefinition = getNewestDeployedVersion(processDefinitionKey);
         if (!newestProcessDefinition.isPresent()) {
             log.info("No process definition with key {} deployed. No instances will be migrated", processDefinitionKey);
-        } else if (newestProcessDefinition.get().getProcessVersion().isOlderVersionThan(OLDEST_RELEASED_VERSION)) {
-        	log.info("No process definitions with version newer than version 1.0.0 deployed. No instances will be migrated");
+        } else if (!newestProcessDefinition.get().getProcessVersion().isPresent()) {
+        	log.info("No process definitions with a Version Tag deployed deployed. No instances will be migrated");
     	} else {
-            ProcessVersion newestProcessVersion = newestProcessDefinition.get().getProcessVersion();
+            ProcessVersion newestProcessVersion = newestProcessDefinition.get().getProcessVersion().get();
             log.info("Newest version for process definition key {} is {}. Attempting migration.", processDefinitionKey, newestProcessVersion.toVersionTag());
 
             List<VersionedProcessInstance> olderProcessInstances = getOlderProcessInstances(processDefinitionKey, newestProcessVersion);
@@ -114,8 +114,9 @@ public class ProcessInstanceMigrator {
             .list()
             .stream()
             .filter(processDefinition -> processDefinition.getVersionTag() != null)
-            .filter(processDefinition -> !ProcessVersion.fromString(processDefinition.getVersionTag()).isOlderVersionThan(OLDEST_RELEASED_VERSION))
-            .filter(processDefinition -> ProcessVersion.fromString(processDefinition.getVersionTag()).isOlderVersionThan(newestVersion))
+            .filter(processDefinition -> ProcessVersion.fromString(processDefinition.getVersionTag()).isPresent())
+            .filter(processDefinition -> !ProcessVersion.fromString(processDefinition.getVersionTag()).get().isOlderVersionThan(OLDEST_RELEASED_VERSION))
+            .filter(processDefinition -> ProcessVersion.fromString(processDefinition.getVersionTag()).get().isOlderVersionThan(newestVersion))
             .flatMap(processDefinition -> processEngine.getRuntimeService().createProcessInstanceQuery()
                 .processDefinitionId(processDefinition.getId())
                 .orderByBusinessKey()
@@ -125,7 +126,7 @@ public class ProcessInstanceMigrator {
                 .map(processInstance -> new VersionedProcessInstance(
                         processInstance.getId(),
                         processInstance.getBusinessKey(),
-                        ProcessVersion.fromString(processDefinition.getVersionTag()),
+                        ProcessVersion.fromString(processDefinition.getVersionTag()).get(),
                         processDefinition.getId()
                 ))
             ).collect(Collectors.toList());
@@ -145,7 +146,7 @@ public class ProcessInstanceMigrator {
     @Getter
     @RequiredArgsConstructor
     private static class VersionedDefinitionId {
-        private final ProcessVersion processVersion;
+        private final Optional<ProcessVersion> processVersion;
         private final String processDefinitionId;
     }
 

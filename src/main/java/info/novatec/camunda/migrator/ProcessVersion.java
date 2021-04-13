@@ -1,5 +1,7 @@
 package info.novatec.camunda.migrator;
 
+import java.util.Optional;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,15 +12,15 @@ public class ProcessVersion {
     private final int minorVersion;
     private final int patchVersion;
 
-    public static ProcessVersion fromString(String versionString) {
+    public static Optional<ProcessVersion> fromString(String versionString) {
         if (versionString == null) {
-           return new ProcessVersion(0, 0, 0);
+           return Optional.empty();
         }
         String[] stringArray = versionString.split("\\.");
         int majorVersion = Integer.valueOf(stringArray[0]);
         int minorVersion = Integer.valueOf(stringArray[1]);
         int patchVersion = Integer.valueOf(stringArray[2]);
-        return new ProcessVersion(majorVersion, minorVersion, patchVersion);
+        return Optional.of(new ProcessVersion(majorVersion, minorVersion, patchVersion));
     }
 
     public boolean isOlderVersionThan(ProcessVersion processVersionToCompare) {
