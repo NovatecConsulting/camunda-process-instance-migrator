@@ -13,9 +13,10 @@ public class ProcessVersion {
     private final int patchVersion;
 
     public static Optional<ProcessVersion> fromString(String versionString) {
-        if (versionString == null) {
+        if (versionString == null || !versionString.matches("\\d+\\.\\d+\\.\\d+")) {
            return Optional.empty();
         }
+        
         String[] stringArray = versionString.split("\\.");
         int majorVersion = Integer.valueOf(stringArray[0]);
         int minorVersion = Integer.valueOf(stringArray[1]);
