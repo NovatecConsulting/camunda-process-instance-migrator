@@ -36,7 +36,7 @@ First, add the dependency:
     <version>1.0.3</version>
 </dependency>
 ```
-Secondly, initialise the migrator by injecting the only dependency to it, Camundas ProcessEngine. For example:
+Secondly, initialise the migrator by injecting Camundas ProcessEngine and - optionally - setting a MigrationInstructions object. These instructions are only required for minor migrations, so you may ignore them as long as you're only migrating on patch level.
 
 ```java
 @Configuration
@@ -49,9 +49,10 @@ public class MigratorConfiguration {
     public ProcessInstanceMigrator processInstanceMigrator() {
         return new ProcessInstanceMigrator(processEngine);
     }
+        
 }
 ```
-You may then use the ProcessInstanceMigrator-Bean to manually trigger the migration (e.g. via a REST-endpoint), or to automatically migrate upon each deployment using @PostConstruct:
+You may then use the ProcessInstanceMigrator-Bean to manually trigger the migration (e.g. via a REST-endpoint), or to automatically migrate upon each deployment via PostConstruct or an ApplicationReadyEvent:
 
 ```java
 @Component
@@ -60,21 +61,62 @@ public class OnStartupMigrator {
     @Autowired
     private ProcessInstanceMigrator processInstanceMigrator;
     
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void migrateAllProcessInstances() {
         processInstanceMigrator.migrateInstancesOfAllProcesses();
     }
 }
 ```
+
+Every time you need to do minor migrations (which becomes necessary whenever you remove a wait state activity or move it into a subprocess), you will need to specify instructions for that:
+
+```java
+@Configuration
+public class MigratorConfiguration {
+
+    @Autowired
+    private ProcessEngine processEngine;
+    
+    @Bean
+    public ProcessInstanceMigrator processInstanceMigrator() {
+        ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine);
+        
+        //MigrationInstructions are required for minor migrations
+        processInstanceMigrator.setMigrationInstructions(generateMigrationInstructions());
+        return processInstanceMigrator;
+    }
+    
+    private MigrationInstructions generateMigrationInstructions(){
+        return MigrationInstructions.Builder()
+            .putInstructions("Some_process_definition_key, Arrays.asList(
+								MinorMigrationInstructions.builder()
+					        		.sourceMinorVersion(0)
+					        		.targetMinorVersion(2)					        		
+					        		.majorVersion(1)
+					        		.migrationInstructions(Arrays.asList(
+					        				new MigrationInstructionImpl("UserTask1", "UserTask3"), 
+					        				new MigrationInstructionImpl("UserTask2", "UserTask3")))
+					        		.build()))
+        .build();
+    }
+}
+```
+Note that every call of "putInstructions" corresponds to one specific migration (in this case going from 1.0.x to 1.2.x). This could, however, also be achieved by specifying instructions for migration from 1.0.x to 1.1.x and from 1.1.x to 1.2.x.
+Note that there is no necessity of actually having all versions deployed on a target environment. If you jump from 1.5.x to 1.8.x in, say, a productive environment, because intermediate versions were only deployed to earlier stages, it will still be sufficient to provide instructions that go from 1.5.x to 1.6.x, from 1.6.x to 1.7.x and from 1.7.x to 1.8.x. The migrator will interpret these instructions accordingly and skip the non-existent versions.
+
 ## What limitations are there?
 
-The tool was developed and tested using camunda 7.14. It may not work with older versions but there will be releases compatible with newer versions of Camunda BPM.
+The tool was developed and tested using Camunda 7.14. It may not work with older versions but there will be releases compatible with newer versions of Camunda Platform.
 
-As of right now, migration of minor versions is not yet supported.
+Required Java 8.
+
+There are also no restrictions to the specifiable migration instructions for minor migrations, unlike in the migration wizard of Camundas EE Cockpit. So this migrator will not prevent you from trying to migrate activities to different types of activities (i.e. from waitstates to non-waitstates or from receive tasks to user tasks). This might, however, result in undefined states and has not been tested whatsoever. So handle with care!
+
+Operations that go beyond migration, like Process Instance Modifications or the setting of variables upon migration are also not implemented as of yet.
 
 ## What else do I need to know?
 
-Firstly, Migration of Process Engines takes "real" time. Migrating thousands of Process Instances may take several minutes. The containing application should not be impacted, but it should be kept in mind.
+Firstly, Migration of Process Engines takes "real" time. Migrating thousands of Process Instances may take several minutes. So it is advisable to carry out the migration asynchronously.
 
 Secondly, the migrator was built to be robust and informative. Any action the migrator takes will be logged, and any issue that may come up during migration, will just cause the migration of that specific process instance to fail and be logged accordingly. So it is adviced to check your logs after each migration for faulty process instances. It is very rare that a migration attempt fails, but when it does, you may want to correct it manually.
 

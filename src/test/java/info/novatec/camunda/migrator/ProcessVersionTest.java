@@ -16,12 +16,12 @@ public class ProcessVersionTest {
         assertThat(processVersion.getMinorVersion()).isEqualTo(3);
         assertThat(processVersion.getPatchVersion()).isEqualTo(5);
     }
-    
+
     @Test
     void fromString_should_return_empty_optional_if_string_is_null(){
     	assertThat(ProcessVersion.fromString(null).isPresent()).isFalse();
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {"1.3,0", "1.3.", "1.3.0.2", "1..3", ".1.3", "13..", "1.3..4", "a.1.3", "1.b.c", "1.2.%"})
     void fromString_should_return_empty_optional_if_version_tag_is_faulty(String versionTagString) {
