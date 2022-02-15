@@ -70,7 +70,7 @@ public class ProcessInstanceMigrator {
 
                     } catch(Exception  e) {
                         log.warn("The process instance with the id {} and businessKey {} could not be migrated.",
-                                processInstance.getProcessInstanceId(), processInstance.getBusinessKey());
+                                processInstance.getProcessInstanceId(), processInstance.getBusinessKey(), e);
                     }
                 } else {
                     log.warn("No Migration plan could be generated to migrate the process instance with the id {} and businessKey {} from version {} to version {}",
