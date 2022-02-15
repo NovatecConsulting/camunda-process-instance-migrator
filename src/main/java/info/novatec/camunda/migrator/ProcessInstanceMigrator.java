@@ -69,8 +69,13 @@ public class ProcessInstanceMigrator {
                                 processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag());
 
                     } catch(Exception  e) {
-                        log.warn("The process instance with the id {} and businessKey {} could not be migrated.",
-                                processInstance.getProcessInstanceId(), processInstance.getBusinessKey(), e);
+                        log.warn("The process instance with the id {} and businessKey {} could not be migrated from version {} to version {}.\n"
+                            + "Source process definition id: {}\n"
+                            + "Target process definition id: {}\n",
+                                processInstance.getProcessInstanceId(), processInstance.getBusinessKey(), 
+                                processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag(),
+                                processInstance.getProcessDefinitionId(), newestProcessDefinition.get().getProcessDefinitionId(),
+                                e);
                     }
                 } else {
                     log.warn("No Migration plan could be generated to migrate the process instance with the id {} and businessKey {} from version {} to version {}",
