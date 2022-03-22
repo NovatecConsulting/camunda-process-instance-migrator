@@ -65,7 +65,7 @@ public class ProcessInstanceMigrator {
 
             for (VersionedProcessInstance processInstance : olderProcessInstances) {
                 MigrationPlan migrationPlan = null;
-                if (processInstance.getProcessVersion().isOlderPatchThan(newestProcessVersion)) {
+                if (processInstance.getProcessVersion().isOlderOrSamePatchAs(newestProcessVersion)) {
                     migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
                 } else if (processInstance.getProcessVersion().isOlderMinorThan(newestProcessVersion)) {
                 	migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);

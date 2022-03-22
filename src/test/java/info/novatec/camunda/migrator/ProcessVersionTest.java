@@ -75,38 +75,38 @@ public class ProcessVersionTest {
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_lower_major_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(3,1,2))).isFalse();
+    void isOlderOrSamePatchAs_should_return_false_for_lower_major_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(3,1,2))).isFalse();
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_lower_minor_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(2,4,2))).isFalse();
+    void isOlderOrSamePatchAs_should_return_false_for_lower_minor_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(2,4,2))).isFalse();
     }
 
     @Test
-    void isOlderPatchThan_should_return_true_for_lower_patch_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(2,3,7))).isTrue();
+    void isOlderOrSamePatchAs_should_return_true_for_lower_patch_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(2,3,7))).isTrue();
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_higher_major_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(1,4,7))).isFalse();
+    void isOlderOrSamePatchAs_should_return_false_for_higher_major_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(1,4,7))).isFalse();
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_higher_minor_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(2,2,7))).isFalse();
+    void isOlderOrSamePatchAs_should_return_false_for_higher_minor_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(2,2,7))).isFalse();
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_higher_patch_version() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(2,3,4))).isFalse();
+    void isOlderOrSamePatchAs_should_return_false_for_higher_patch_version() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(2,3,4))).isFalse();
     }
 
     @Test
-    void isOlderPatchThan_should_return_false_for_equal_versions() {
-        assertThat(new ProcessVersion(2,3,5).isOlderPatchThan(new ProcessVersion(2,3,5))).isFalse();
+    void isOlderOrSamePatchAs_should_return_true_for_equal_versions() {
+        assertThat(new ProcessVersion(2,3,5).isOlderOrSamePatchAs(new ProcessVersion(2,3,5))).isTrue();
     }
 
     @Test

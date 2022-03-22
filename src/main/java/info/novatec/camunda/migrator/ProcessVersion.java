@@ -34,10 +34,10 @@ public class ProcessVersion {
                 && this.patchVersion < processVersionToCompare.getPatchVersion());
     }
 
-    public boolean isOlderPatchThan(ProcessVersion processVersionToCompare) {
+    public boolean isOlderOrSamePatchAs(ProcessVersion processVersionToCompare) {
         return this.majorVersion == processVersionToCompare.getMajorVersion()
             && this.minorVersion == processVersionToCompare.getMinorVersion()
-            && this.patchVersion < processVersionToCompare.getPatchVersion();
+            && this.patchVersion <= processVersionToCompare.getPatchVersion();
     }
 
     public boolean isOlderMinorThan(ProcessVersion processVersionToCompare) {
