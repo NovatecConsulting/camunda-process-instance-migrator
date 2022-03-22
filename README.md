@@ -36,7 +36,7 @@ First, add the dependency:
     <version>1.0.3</version>
 </dependency>
 ```
-Secondly, initialise the migrator by injecting Camundas ProcessEngine and - optionally - setting a MigrationInstructions object. These instructions are only required for minor migrations, so you may ignore them as long as you're only migrating on patch level.
+Secondly, initialise the migrator by injecting Camundas ProcessEngine. As long as you're only migrating on patch level and don't need to do minor migrations, there is no need for further configuration:
 
 ```java
 @Configuration
