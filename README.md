@@ -106,7 +106,7 @@ Note that there is no necessity of actually having all versions deployed on a ta
 
 ## What limitations are there?
 
-The tool was developed and tested using Camunda 7.14. It may not work with older versions but there will be releases compatible with newer versions of Camunda Platform.
+The tool was developed and tested using Camunda 7.14 and subsequently updated to Camunda 7.15 and 7.16. It may not work with older versions but there will be releases compatible with newer versions of Camunda Platform.
 
 Required Java 8.
 
