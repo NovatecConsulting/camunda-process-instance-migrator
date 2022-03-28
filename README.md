@@ -33,7 +33,7 @@ First, add the dependency:
 <dependency>
     <groupId>info.novatec</groupId>
     <artifactId>camunda-process-instance-migrator</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 Secondly, initialise the migrator by injecting Camundas ProcessEngine. As long as you're only migrating on patch level and don't need to do minor migrations, there is no need for further configuration:
