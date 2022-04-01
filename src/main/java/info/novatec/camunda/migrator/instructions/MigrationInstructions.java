@@ -1,10 +1,13 @@
-package info.novatec.camunda.migrator;
+package info.novatec.camunda.migrator.instructions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import info.novatec.camunda.migrator.ProcessInstanceMigrator;
 import lombok.Getter;
 
 /**
@@ -13,7 +16,7 @@ import lombok.Getter;
  * {@link ProcessInstanceMigrator}, even if no instructions are specified.
  */
 @Getter
-public class MigrationInstructions {
+public class MigrationInstructions implements GetMigrationInstructions {
 
 	private Map<String, List<MinorMigrationInstructions>> migrationInstructionMap;
 
@@ -44,6 +47,20 @@ public class MigrationInstructions {
 
 		public MigrationInstructions build() {
 			return new MigrationInstructions(migrationInstructionMap);
+		}
+	}
+
+	public List<MinorMigrationInstructions> getApplicableMinorMigrationInstructions(String processDefinitionKey,
+			int sourceMinorVersion, int targetMinorVersion, int majorVersion) {
+		if (migrationInstructionMap.containsKey(processDefinitionKey))
+			return migrationInstructionMap.get(processDefinitionKey).stream()
+					.filter(minorMigrationInstructions -> minorMigrationInstructions
+							.getTargetMinorVersion() <= targetMinorVersion
+							&& minorMigrationInstructions.getSourceMinorVersion() >= sourceMinorVersion
+							&& minorMigrationInstructions.getMajorVersion() == majorVersion)
+					.collect(Collectors.toList());
+		else {
+			return Collections.emptyList();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package info.novatec.camunda.migrator;
+package info.novatec.camunda.migrator.instructions;
 
 import java.util.List;
 

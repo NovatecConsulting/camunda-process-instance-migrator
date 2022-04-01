@@ -18,6 +18,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import info.novatec.camunda.migrator.instructions.MigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
+
 public class ProcessInstanceMigratorTest_Minor {
 
     @ClassRule
