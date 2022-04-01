@@ -1,6 +1,5 @@
 package info.novatec.camunda.migrator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +16,7 @@ import info.novatec.camunda.migrator.instances.VersionedProcessInstance;
 import info.novatec.camunda.migrator.instructions.GetMigrationInstructions;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionCombiner;
 import info.novatec.camunda.migrator.instructions.MigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MigrationInstructionsAdder;
 import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImplementation;
@@ -64,6 +64,7 @@ public class ProcessInstanceMigrator {
     
     //TODO: LOGGER extrahieren
 
+    //TODO: make private
     protected void migrateProcessInstances(String processDefinitionKey) {
         log.info("Starting migration for instances with process definition key {}", processDefinitionKey);
         log.info("Process instances BEFORE migration with process definition key {}", processDefinitionKey);
@@ -96,7 +97,7 @@ public class ProcessInstanceMigrator {
 					List<MigrationInstruction> executableMigrationInstructions = MigrationInstructionCombiner.combineMigrationInstructions(
 							applicableMinorMigrationInstructions);
 
-					addInstructions(migrationPlan, executableMigrationInstructions);
+					MigrationInstructionsAdder.addInstructions(migrationPlan, executableMigrationInstructions);
                 }
                 if (migrationPlan != null) {
                     try {
@@ -128,39 +129,6 @@ public class ProcessInstanceMigrator {
         log.info("Process instances AFTER migration with process definition key {}", processDefinitionKey);
         logExistingProcessInstanceInfos(processDefinitionKey);
     }
-
-	private void addInstructions(MigrationPlan migrationPlan,
-			List<MigrationInstruction> executableMigrationInstructions) {
-		List<MigrationInstruction> migrationPlanList = migrationPlan.getInstructions();
-		List<MigrationInstruction> instructionsToBeAddedInTheEnd = new ArrayList<>();
-		//first overwrite default instructions with specified instructions
-		for(MigrationInstruction instruction : migrationPlanList) {
-			boolean specifiedMigrationWasAdded = false;
-			for (MigrationInstruction specifiedInstruction : executableMigrationInstructions) {
-				if (instruction.getSourceActivityId().equals(specifiedInstruction.getSourceActivityId())) {
-					instructionsToBeAddedInTheEnd.add(specifiedInstruction);
-					specifiedMigrationWasAdded = true;
-				}
-			}
-			if (!specifiedMigrationWasAdded) {
-				instructionsToBeAddedInTheEnd.add(instruction);
-			}
-		}
-		//then add all instructions for activities that are not handled in the default plan
-		for (MigrationInstruction specifiedInstruction : executableMigrationInstructions) {
-			boolean specifiedInstructionSourceWasHandledInDefaultPlan = false;
-			for(MigrationInstruction instruction : migrationPlanList) {
-				if (instruction.getSourceActivityId().equals(specifiedInstruction.getSourceActivityId())) {
-					specifiedInstructionSourceWasHandledInDefaultPlan = true;
-				}
-			}
-			if (!specifiedInstructionSourceWasHandledInDefaultPlan && !instructionsToBeAddedInTheEnd.contains(specifiedInstruction)) {
-				instructionsToBeAddedInTheEnd.add(specifiedInstruction);
-			}
-		}
-		migrationPlanList.clear();
-		migrationPlanList.addAll(instructionsToBeAddedInTheEnd);
-	}
 
     private void logExistingProcessInstanceInfos(String processDefinitionKey) {
         processEngine.getRuntimeService().createProcessInstanceQuery()
