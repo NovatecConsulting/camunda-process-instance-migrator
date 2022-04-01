@@ -1,7 +1,6 @@
 package info.novatec.camunda.migrator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +16,13 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import info.novatec.camunda.migrator.instances.GetOlderProcessInstancesDefaultImplementation;
 import info.novatec.camunda.migrator.instances.GetOlderProcessInstances;
 import info.novatec.camunda.migrator.instances.VersionedProcessInstance;
+import info.novatec.camunda.migrator.instructions.GetMigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImplementation;
 import info.novatec.camunda.migrator.plan.VersionedDefinitionId;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,20 +35,24 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @RequiredArgsConstructor
-@Setter
 @Slf4j
 public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
     private final GetOlderProcessInstances getOlderProcessInstances;
     private final CreatePatchMigrationplan createPatchMigrationplan;
-
-    private MigrationInstructions migrationInstructions;
+    
+    private GetMigrationInstructions getMigrationInstructions;
     
     public ProcessInstanceMigrator(ProcessEngine processEngine) {
     	this.processEngine = processEngine;
     	this.getOlderProcessInstances = new GetOlderProcessInstancesDefaultImplementation(processEngine);
     	this.createPatchMigrationplan = new CreatePatchMigrationplanDefaultImplementation(processEngine);
+    	this.getMigrationInstructions = MigrationInstructions.builder().build();
+    }
+    
+    public void setMigrationInstructions(GetMigrationInstructions getMigrationInstructions) {
+    	this.getMigrationInstructions = getMigrationInstructions;
     }
 
     public void migrateInstancesOfAllProcesses() {
@@ -84,9 +89,10 @@ public class ProcessInstanceMigrator {
                 } else if (processInstance.getProcessVersion().isOlderMinorThan(newestProcessVersion)) {
                 	migrationPlan = createPatchMigrationplan.migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
 
-					List<MinorMigrationInstructions> applicableMinorMigrationInstructions = getApplicableMinorMigrationInstructions(
-							processDefinitionKey, processInstance.getProcessVersion().getMinorVersion(),
-							newestProcessVersion.getMinorVersion(), newestProcessVersion.getMajorVersion());
+					List<MinorMigrationInstructions> applicableMinorMigrationInstructions = getMigrationInstructions
+							.getApplicableMinorMigrationInstructions(processDefinitionKey,
+									processInstance.getProcessVersion().getMinorVersion(),
+									newestProcessVersion.getMinorVersion(), newestProcessVersion.getMajorVersion());
 
 					List<MigrationInstruction> executableMigrationInstructions = combineMigrationInstructions(
 							applicableMinorMigrationInstructions);
@@ -182,20 +188,6 @@ public class ProcessInstanceMigrator {
         return Optional.ofNullable(latestProcessDefinition).map(processDefinition ->
                     new VersionedDefinitionId(ProcessVersion.fromString(processDefinition.getVersionTag()), processDefinition.getId()));
     }
-
-	private List<MinorMigrationInstructions> getApplicableMinorMigrationInstructions(String processDefinitionKey,
-			int sourceMinorVersion, int targetMinorVersion, int majorVersion) {
-		if (migrationInstructions != null && migrationInstructions.getMigrationInstructionMap().containsKey(processDefinitionKey))
-			return migrationInstructions.getMigrationInstructionMap().get(processDefinitionKey).stream()
-					.filter(minorMigrationInstructions -> minorMigrationInstructions
-							.getTargetMinorVersion() <= targetMinorVersion
-							&& minorMigrationInstructions.getSourceMinorVersion() >= sourceMinorVersion
-							&& minorMigrationInstructions.getMajorVersion() == majorVersion)
-					.collect(Collectors.toList());
-		else {
-			return Collections.emptyList();
-		}
-	}
 
 	private List<MigrationInstruction> combineMigrationInstructions(
 			List<MinorMigrationInstructions> applicableMinorMigrationInstructions) {
