@@ -18,11 +18,12 @@ import info.novatec.camunda.migrator.instructions.MigrationInstructionCombiner;
 import info.novatec.camunda.migrator.instructions.MigrationInstructions;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionsAdder;
 import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
+import info.novatec.camunda.migrator.logging.MigratorLogger;
+import info.novatec.camunda.migrator.logging.MigratorLoggerDefaultImplementation;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImplementation;
 import info.novatec.camunda.migrator.plan.VersionedDefinitionId;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This migrator will, when called, attempt to migrate all existing process instances that come from a process
@@ -34,12 +35,12 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @RequiredArgsConstructor
-@Slf4j
 public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
     private final GetOlderProcessInstances getOlderProcessInstances;
     private final CreatePatchMigrationplan createPatchMigrationplan;
+    private final MigratorLogger migratorLogger;
     
     private GetMigrationInstructions getMigrationInstructions;
     
@@ -47,6 +48,7 @@ public class ProcessInstanceMigrator {
     	this.processEngine = processEngine;
     	this.getOlderProcessInstances = new GetOlderProcessInstancesDefaultImplementation(processEngine);
     	this.createPatchMigrationplan = new CreatePatchMigrationplanDefaultImplementation(processEngine);
+    	this.migratorLogger = new MigratorLoggerDefaultImplementation();
     	this.getMigrationInstructions = MigrationInstructions.builder().build();
     }
     
@@ -61,23 +63,21 @@ public class ProcessInstanceMigrator {
             .list()
             .forEach(processDefinition -> migrateProcessInstances(processDefinition.getKey()));
     }
-    
-    //TODO: LOGGER extrahieren
 
     //TODO: make private
     protected void migrateProcessInstances(String processDefinitionKey) {
-        log.info("Starting migration for instances with process definition key {}", processDefinitionKey);
-        log.info("Process instances BEFORE migration with process definition key {}", processDefinitionKey);
+    	migratorLogger.logMigrationStart(processDefinitionKey);
+    	migratorLogger.logMessageForInstancesBeforeMigration(processDefinitionKey);
         logExistingProcessInstanceInfos(processDefinitionKey);
 
         Optional<VersionedDefinitionId> newestProcessDefinition = getNewestDeployedVersion(processDefinitionKey);
         if (!newestProcessDefinition.isPresent()) {
-            log.info("No process definition with key {} deployed. No instances will be migrated", processDefinitionKey);
+        	migratorLogger.logNoProcessInstancesDeployedWithKey(processDefinitionKey);
         } else if (!newestProcessDefinition.get().getProcessVersion().isPresent()) {
-        	log.info("No process definitions with a Version Tag deployed deployed. No instances will be migrated");
+        	migratorLogger.logNoProcessInstancesDeployedWithVersionTag();
     	} else {
             ProcessVersion newestProcessVersion = newestProcessDefinition.get().getProcessVersion().get();
-            log.info("Newest version for process definition key {} is {}. Attempting migration.", processDefinitionKey, newestProcessVersion.toVersionTag());
+            migratorLogger.logNewestVersionInfo(processDefinitionKey, newestProcessVersion.toVersionTag());
 
 			List<VersionedProcessInstance> olderProcessInstances = getOlderProcessInstances
 					.getOlderProcessInstances(processDefinitionKey, newestProcessVersion);
@@ -105,28 +105,25 @@ public class ProcessInstanceMigrator {
                             .newMigration(migrationPlan)
                             .processInstanceIds(processInstance.getProcessInstanceId())
                             .execute();
-                        log.info("Successfully migrated process instance with id {} and businessKey {} from version {} to version {}",
+                        migratorLogger.logMigrationSuccessful(
                                 processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
                                 processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag());
 
                     } catch(Exception  e) {
-                        log.warn("The process instance with the id {} and businessKey {} could not be migrated from version {} to version {}.\n"
-                            + "Source process definition id: {}\n"
-                            + "Target process definition id: {}\n",
-                                processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
+                    	migratorLogger.logMigrationError(
+                    			processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
                                 processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag(),
-                                processInstance.getProcessDefinitionId(), newestProcessDefinition.get().getProcessDefinitionId(),
-                                e);
+                                processInstance.getProcessDefinitionId(), newestProcessDefinition.get().getProcessDefinitionId(), e);
                     }
                 } else {
-                    log.warn("No Migration plan could be generated to migrate the process instance with the id {} and businessKey {} from version {} to version {}",
-                            processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
+                	migratorLogger.logMigrationPlanGenerationError(
+                			processInstance.getProcessInstanceId(), processInstance.getBusinessKey(),
                             processInstance.getProcessVersion().toVersionTag(), newestProcessVersion.toVersionTag());
                 }
             }
 
         }
-        log.info("Process instances AFTER migration with process definition key {}", processDefinitionKey);
+        migratorLogger.logMessageForInstancesAfterMigration(processDefinitionKey);
         logExistingProcessInstanceInfos(processDefinitionKey);
     }
 
@@ -141,7 +138,7 @@ public class ProcessInstanceMigrator {
                 .forEach((processDefinitionId, instances) -> {
                     ProcessDefinition processDefinition = processEngine.getRepositoryService().createProcessDefinitionQuery().processDefinitionId(processDefinitionId).singleResult();
                     String businessKeys = instances.stream().map(instance -> instance.getBusinessKey()).collect(Collectors.joining(","));
-                    log.info("processDefinitionId: {}, versionTag: {}, count {}, businessKeys: {}", processDefinitionId, processDefinition.getVersionTag(), instances.size(), businessKeys);
+                    migratorLogger.logProcessInstancesInfo(processDefinitionId, processDefinition.getVersionTag(), instances.size(), businessKeys);
         });
     }    
 
