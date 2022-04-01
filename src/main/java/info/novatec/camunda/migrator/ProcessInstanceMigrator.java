@@ -14,10 +14,12 @@ import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 
-import info.novatec.camunda.migrator.instances.GetOlderProcessInstanceDefaultImplementation;
+import info.novatec.camunda.migrator.instances.GetOlderProcessInstancesDefaultImplementation;
 import info.novatec.camunda.migrator.instances.GetOlderProcessInstances;
 import info.novatec.camunda.migrator.instances.VersionedProcessInstance;
-import lombok.Getter;
+import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
+import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImplementation;
+import info.novatec.camunda.migrator.plan.VersionedDefinitionId;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +40,14 @@ public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
     private final GetOlderProcessInstances getOlderProcessInstances;
+    private final CreatePatchMigrationplan createPatchMigrationplan;
 
     private MigrationInstructions migrationInstructions;
     
     public ProcessInstanceMigrator(ProcessEngine processEngine) {
     	this.processEngine = processEngine;
-    	this.getOlderProcessInstances = new GetOlderProcessInstanceDefaultImplementation(processEngine);
+    	this.getOlderProcessInstances = new GetOlderProcessInstancesDefaultImplementation(processEngine);
+    	this.createPatchMigrationplan = new CreatePatchMigrationplanDefaultImplementation(processEngine);
     }
 
     public void migrateInstancesOfAllProcesses() {
@@ -76,9 +80,9 @@ public class ProcessInstanceMigrator {
             for (VersionedProcessInstance processInstance : olderProcessInstances) {
                 MigrationPlan migrationPlan = null;
                 if (processInstance.getProcessVersion().isOlderPatchThan(newestProcessVersion)) {
-                    migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
+                    migrationPlan = createPatchMigrationplan.migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
                 } else if (processInstance.getProcessVersion().isOlderMinorThan(newestProcessVersion)) {
-                	migrationPlan = migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
+                	migrationPlan = createPatchMigrationplan.migrationPlanByMappingEqualActivityIDs(newestProcessDefinition.get(), processInstance);
 
 					List<MinorMigrationInstructions> applicableMinorMigrationInstructions = getApplicableMinorMigrationInstructions(
 							processDefinitionKey, processInstance.getProcessVersion().getMinorVersion(),
@@ -152,14 +156,6 @@ public class ProcessInstanceMigrator {
 		migrationPlanList.clear();
 		migrationPlanList.addAll(instructionsToBeAddedInTheEnd);
 	}
-
-	private MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {
-        return processEngine.getRuntimeService()
-                .createMigrationPlan(processInstance.getProcessDefinitionId(), newestProcessDefinition.getProcessDefinitionId())
-                .mapEqualActivities()
-                .updateEventTriggers()
-                .build();
-    }
 
     private void logExistingProcessInstanceInfos(String processDefinitionKey) {
         processEngine.getRuntimeService().createProcessInstanceQuery()
@@ -240,11 +236,5 @@ public class ProcessInstanceMigrator {
 					}));
 		return instructionList;
 	}
-
-    @Getter
-    @RequiredArgsConstructor
-    private static class VersionedDefinitionId {
-        private final Optional<ProcessVersion> processVersion;
-        private final String processDefinitionId;
-    }
+	
 }
