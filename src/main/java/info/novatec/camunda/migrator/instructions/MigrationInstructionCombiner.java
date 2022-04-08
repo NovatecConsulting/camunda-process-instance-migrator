@@ -9,6 +9,14 @@ import org.camunda.bpm.engine.migration.MigrationInstruction;
 
 public class MigrationInstructionCombiner {
 
+    /**
+     * Combines a list of {@link MinorMigrationInstruction} into a list of migration-ready
+     * {@link MigrationInstruction}, thereby taking into account possible 'adding' of instructions that span multiple
+     * minor versions.
+     *
+     * @param applicableMinorMigrationInstructions the migration instructions that are to be combined.
+     * @return a list of {@link MigrationInstruction} containing all combined instructions from the input.
+     */
 	public static List<MigrationInstruction> combineMigrationInstructions(
 			List<MinorMigrationInstructions> applicableMinorMigrationInstructions) {
 		List<MigrationInstruction> instructionList = new ArrayList<>();

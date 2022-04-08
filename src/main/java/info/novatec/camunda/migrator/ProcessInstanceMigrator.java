@@ -63,7 +63,7 @@ public class ProcessInstanceMigrator {
         if (!newestProcessDefinition.isPresent()) {
         	migratorLogger.logNoProcessInstancesDeployedWithKey(processDefinitionKey);
         } else if (!newestProcessDefinition.get().getProcessVersion().isPresent()) {
-        	migratorLogger.logNoProcessInstancesDeployedWithVersionTag();
+        	migratorLogger.logNewestDefinitionDoesNotHaveVersionTag(processDefinitionKey);
     	} else {
             ProcessVersion newestProcessVersion = newestProcessDefinition.get().getProcessVersion().get();
             migratorLogger.logNewestVersionInfo(processDefinitionKey, newestProcessVersion.toVersionTag());

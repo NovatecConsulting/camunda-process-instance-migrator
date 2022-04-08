@@ -8,14 +8,18 @@ import org.camunda.bpm.engine.ProcessEngine;
 import info.novatec.camunda.migrator.ProcessVersion;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Default implementation of {@link GetOlderProcessInstances} *
+ */
 @RequiredArgsConstructor
-public class GetOlderProcessInstancesDefaultImplementation implements GetOlderProcessInstances {
-	
+public class GetOlderProcessInstancesDefaultImpl implements GetOlderProcessInstances {
+
     private static final ProcessVersion OLDEST_RELEASED_VERSION = ProcessVersion.fromString("1.0.0").get();
-	
+
 	private final ProcessEngine processEngine;
 
-	public List<VersionedProcessInstance> getOlderProcessInstances(String processDefinitionKey, ProcessVersion newestVersion){
+	@Override
+    public List<VersionedProcessInstance> getOlderProcessInstances(String processDefinitionKey, ProcessVersion newestVersion){
         return processEngine.getRepositoryService().createProcessDefinitionQuery()
             .processDefinitionKey(processDefinitionKey)
             .orderByProcessDefinitionVersion()
