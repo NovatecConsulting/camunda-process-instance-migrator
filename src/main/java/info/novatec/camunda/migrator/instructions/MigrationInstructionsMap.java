@@ -16,41 +16,30 @@ import lombok.Getter;
  * {@link ProcessInstanceMigrator}, even if no instructions are specified.
  */
 @Getter
-public class MigrationInstructions implements GetMigrationInstructions {
+public class MigrationInstructionsMap implements GetMigrationInstructions {
 
 	private Map<String, List<MinorMigrationInstructions>> migrationInstructionMap;
 
-	private MigrationInstructions(Map<String, List<MinorMigrationInstructions>> migrationInstructionMap) {
-		this.migrationInstructionMap = migrationInstructionMap;
+	public MigrationInstructionsMap() {
+	    this.migrationInstructionMap = new HashMap<>();
 	}
 
-	public static Builder builder() {
-	    return new Builder();
+	public void clearInstructions() {
+	    this.migrationInstructionMap = new HashMap<>();
 	}
 
-	public static class Builder {
-		private Map<String, List<MinorMigrationInstructions>> migrationInstructionMap;
+	public MigrationInstructionsMap putInstructions(String processDefinitionKey, List<MinorMigrationInstructions> instructions) {
+        if (migrationInstructionMap.containsKey(processDefinitionKey)) {
+            migrationInstructionMap.get(processDefinitionKey).addAll(instructions);
+        } else {
+            //generate new ArrayList to guarantee support for structural modification (i.e. add)
+            migrationInstructionMap.put(processDefinitionKey, new ArrayList<>(instructions));
+        }
+        return this;
+    }
 
-		public Builder() {
-			this.migrationInstructionMap = new HashMap<>();
-		}
-
-		public Builder putInstructions(String processDefinitionKey, List<MinorMigrationInstructions> instructions) {
-			if (migrationInstructionMap.containsKey(processDefinitionKey)) {
-				migrationInstructionMap.get(processDefinitionKey).addAll(instructions);
-			} else {
-				//generate new ArrayList to guarantee support for structural modification (i.e. add)
-				migrationInstructionMap.put(processDefinitionKey, new ArrayList<>(instructions));
-			}
-			return this;
-		}
-
-		public MigrationInstructions build() {
-			return new MigrationInstructions(migrationInstructionMap);
-		}
-	}
-
-	public List<MinorMigrationInstructions> getApplicableMinorMigrationInstructions(String processDefinitionKey,
+	@Override
+    public List<MinorMigrationInstructions> getApplicableMinorMigrationInstructions(String processDefinitionKey,
 			int sourceMinorVersion, int targetMinorVersion, int majorVersion) {
 		if (migrationInstructionMap.containsKey(processDefinitionKey))
 			return migrationInstructionMap.get(processDefinitionKey).stream()

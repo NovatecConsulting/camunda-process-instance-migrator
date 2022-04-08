@@ -4,6 +4,7 @@ import static info.novatec.camunda.migrator.TestHelper.*;
 import static info.novatec.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
 import static info.novatec.camunda.migrator.assertions.TaskListAsserter.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.camunda.bpm.engine.test.assertions.bpmn.AbstractAssertions.processEngine;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
 
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import info.novatec.camunda.migrator.instructions.MigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MigrationInstructionsMap;
 import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
 
 public class ProcessInstanceMigratorTest_Minor {
@@ -33,7 +34,11 @@ public class ProcessInstanceMigratorTest_Minor {
 
     private static final String PROCESS_DEFINITION_KEY = "MigrateableProcess";
 
-    private ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine());
+    private MigrationInstructionsMap migrationInstructionsMap = new MigrationInstructionsMap();
+    private ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder()
+        .ofProcessEngine(processEngine())
+        .withGetMigrationInstructions(migrationInstructionsMap)
+        .build();
 
     private ProcessDefinition initialProcessDefinition;
     private ProcessDefinition newestProcessDefinitionAfterRedeployment;
@@ -61,6 +66,8 @@ public class ProcessInstanceMigratorTest_Minor {
             .list()
             .forEach(
                 deployment -> repositoryService().deleteDeployment(deployment.getId()));
+
+        this.migrationInstructionsMap.clearInstructions();
     }
 
     @Test
@@ -106,9 +113,7 @@ public class ProcessInstanceMigratorTest_Minor {
             .allTasksHaveKey("UserTask1")
             .allTasksHaveFormkey(null);
 
-        processInstanceMigrator.setMigrationInstructions(MigrationInstructions.builder()
-						.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionsFor100To150())
-						.build());
+        migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionsFor100To150());
         processInstanceMigrator.migrateInstancesOfAllProcesses();
 
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY, runtimeService()))
@@ -138,9 +143,7 @@ public class ProcessInstanceMigratorTest_Minor {
             .allTasksHaveKey("UserTask1")
             .allTasksHaveFormkey(null);
 
-        processInstanceMigrator.setMigrationInstructions(MigrationInstructions.builder()
-						.putInstructions(PROCESS_DEFINITION_KEY, generateFaultyMigrationInstructionsFor100To150())
-						.build());
+        migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, generateFaultyMigrationInstructionsFor100To150());
         processInstanceMigrator.migrateInstancesOfAllProcesses();
 
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY, runtimeService()))
@@ -170,10 +173,8 @@ public class ProcessInstanceMigratorTest_Minor {
             .allTasksHaveKey("UserTask1")
             .allTasksHaveFormkey(null);
 
-        processInstanceMigrator.setMigrationInstructions(MigrationInstructions.builder()
-						.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionFor100To130())
-						.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionFor130To150())
-						.build());
+        migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionFor100To130());
+        migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionFor130To150());
         processInstanceMigrator.migrateInstancesOfAllProcesses();
 
         assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY, runtimeService()))
@@ -206,9 +207,7 @@ public class ProcessInstanceMigratorTest_Minor {
 	        .oneTaskHasKey("UserTask2")
 	        .allTasksHaveFormkey(null);
 
-	    processInstanceMigrator.setMigrationInstructions(MigrationInstructions.builder()
-						.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionsFor100To150())
-						.build());
+        migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, generateMigrationInstructionsFor100To150());
 	    processInstanceMigrator.migrateInstancesOfAllProcesses();
 
 	    assertThat(getRunningProcessInstances(PROCESS_DEFINITION_KEY, runtimeService()))
@@ -241,17 +240,15 @@ public class ProcessInstanceMigratorTest_Minor {
 	        .oneTaskHasKey("UserTask2")
 	        .allTasksHaveFormkey(null);
 
-	    processInstanceMigrator.setMigrationInstructions(MigrationInstructions.builder()
-						.putInstructions(PROCESS_DEFINITION_KEY, Arrays.asList(
-								MinorMigrationInstructions.builder()
-					        		.sourceMinorVersion(0)
-					        		.targetMinorVersion(7)
-					        		.migrationInstructions(Arrays.asList(
-					        				new MigrationInstructionImpl("UserTask1", "UserTask7"),
-					        				new MigrationInstructionImpl("UserTask2", "UserTask7")))
-					        		.majorVersion(1)
-					        		.build()))
-						.build());
+	    migrationInstructionsMap.putInstructions(PROCESS_DEFINITION_KEY, Arrays.asList(
+                                        MinorMigrationInstructions.builder()
+                                        .sourceMinorVersion(0)
+                                        .targetMinorVersion(7)
+                                        .migrationInstructions(Arrays.asList(
+                                                new MigrationInstructionImpl("UserTask1", "UserTask7"),
+                                                new MigrationInstructionImpl("UserTask2", "UserTask7")))
+                                        .majorVersion(1)
+                                        .build()));
 
 	    processInstanceMigrator.migrateInstancesOfAllProcesses();
 

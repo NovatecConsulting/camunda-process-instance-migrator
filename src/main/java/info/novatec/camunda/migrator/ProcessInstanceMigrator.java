@@ -10,50 +10,39 @@ import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 
-import info.novatec.camunda.migrator.instances.GetOlderProcessInstancesDefaultImplementation;
 import info.novatec.camunda.migrator.instances.GetOlderProcessInstances;
 import info.novatec.camunda.migrator.instances.VersionedProcessInstance;
 import info.novatec.camunda.migrator.instructions.GetMigrationInstructions;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionCombiner;
-import info.novatec.camunda.migrator.instructions.MigrationInstructions;
+import info.novatec.camunda.migrator.instructions.MigrationInstructionsMap;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionsAdder;
 import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
 import info.novatec.camunda.migrator.logging.MigratorLogger;
-import info.novatec.camunda.migrator.logging.MigratorLoggerDefaultImplementation;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
-import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImplementation;
 import info.novatec.camunda.migrator.plan.VersionedDefinitionId;
 import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
 
 /**
  * This migrator will, when called, attempt to migrate all existing process instances that come from a process
  * definition with an older version tag. To enable this, all process models need to be properly versioned:
  * <ul>
  * <li> Increase patch version for simple changes which can be migrated by mapping equal task IDs. Migration of those changes should work out of the box.
- * <li> Increase minor version for changes that need a mapping of some kind for migration to work. Provide these mappings via a {@link MigrationInstructions}-Bean.
+ * <li> Increase minor version for changes that need a mapping of some kind for migration to work. Provide these mappings via a {@link MigrationInstructionsMap}-Bean.
  * <li> Increase major version for changes where no migration is possible or wanted.
  * </ul>
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProcessInstanceMigrator {
 
     private final ProcessEngine processEngine;
     private final GetOlderProcessInstances getOlderProcessInstances;
     private final CreatePatchMigrationplan createPatchMigrationplan;
     private final MigratorLogger migratorLogger;
-    
-    private GetMigrationInstructions getMigrationInstructions;
-    
-    public ProcessInstanceMigrator(ProcessEngine processEngine) {
-    	this.processEngine = processEngine;
-    	this.getOlderProcessInstances = new GetOlderProcessInstancesDefaultImplementation(processEngine);
-    	this.createPatchMigrationplan = new CreatePatchMigrationplanDefaultImplementation(processEngine);
-    	this.migratorLogger = new MigratorLoggerDefaultImplementation();
-    	this.getMigrationInstructions = MigrationInstructions.builder().build();
-    }
-    
-    public void setMigrationInstructions(GetMigrationInstructions getMigrationInstructions) {
-    	this.getMigrationInstructions = getMigrationInstructions;
+    private final GetMigrationInstructions getMigrationInstructions;
+
+    public static ProcessInstanceMigratorBuilder builder() {
+        return new ProcessInstanceMigratorBuilder();
     }
 
     public void migrateInstancesOfAllProcesses() {
@@ -140,7 +129,7 @@ public class ProcessInstanceMigrator {
                     String businessKeys = instances.stream().map(instance -> instance.getBusinessKey()).collect(Collectors.joining(","));
                     migratorLogger.logProcessInstancesInfo(processDefinitionId, processDefinition.getVersionTag(), instances.size(), businessKeys);
         });
-    }    
+    }
 
     private Optional<VersionedDefinitionId> getNewestDeployedVersion(String processDefinitionKey) {
         ProcessDefinition latestProcessDefinition = processEngine.getRepositoryService().createProcessDefinitionQuery()
@@ -152,5 +141,5 @@ public class ProcessInstanceMigrator {
         return Optional.ofNullable(latestProcessDefinition).map(processDefinition ->
                     new VersionedDefinitionId(ProcessVersion.fromString(processDefinition.getVersionTag()), processDefinition.getId()));
     }
-	
+
 }
