@@ -7,11 +7,12 @@ import info.novatec.camunda.migrator.instances.VersionedProcessInstance;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CreatePatchMigrationplanDefaultImplementation implements CreatePatchMigrationplan {
-	
+public class CreatePatchMigrationplanDefaultImpl implements CreatePatchMigrationplan {
+
 	private final ProcessEngine processEngine;
-	
-	public MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {		
+
+	@Override
+    public MigrationPlan migrationPlanByMappingEqualActivityIDs(VersionedDefinitionId newestProcessDefinition, VersionedProcessInstance processInstance) {
         return processEngine.getRuntimeService()
                 .createMigrationPlan(processInstance.getProcessDefinitionId(), newestProcessDefinition.getProcessDefinitionId())
                 .mapEqualActivities()

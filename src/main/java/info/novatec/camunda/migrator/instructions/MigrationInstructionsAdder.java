@@ -8,6 +8,15 @@ import org.camunda.bpm.engine.migration.MigrationPlan;
 
 public class MigrationInstructionsAdder {
 
+    /**
+     * Modifies a given instance of {@link MigrationPlan} by adding a list of {@link MigrationInstruction}. Instructions
+     * that clash with the original plan will displace the originals, others will just be added.
+     *
+     * @param migrationPlan
+     *            the plan to be modified
+     * @param executableMigrationInstructions
+     *            the migration instructions to be added to the original plan
+     */
 	public static void addInstructions(MigrationPlan migrationPlan,
 			List<MigrationInstruction> executableMigrationInstructions) {
 		List<MigrationInstruction> migrationPlanList = migrationPlan.getInstructions();

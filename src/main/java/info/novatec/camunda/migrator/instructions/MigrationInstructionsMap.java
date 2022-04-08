@@ -11,9 +11,7 @@ import info.novatec.camunda.migrator.ProcessInstanceMigrator;
 import lombok.Getter;
 
 /**
- * Class containing all minor migration instructions for all process
- * definitions. A Bean of this class should be provided for the
- * {@link ProcessInstanceMigrator}, even if no instructions are specified.
+ * Default implementation for {@link GetMigrationInstructions}.
  */
 @Getter
 public class MigrationInstructionsMap implements GetMigrationInstructions {

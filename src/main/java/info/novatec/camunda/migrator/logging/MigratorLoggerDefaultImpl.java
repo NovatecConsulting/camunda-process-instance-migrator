@@ -3,24 +3,24 @@ package info.novatec.camunda.migrator.logging;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-//TODO: use logger of ProcessInstanceMigrator?
-//TODO: Override?
-public class MigratorLoggerDefaultImplementation implements MigratorLogger {
+public class MigratorLoggerDefaultImpl implements MigratorLogger {
 
-	public void logMigrationStart(String processDefinitionKey) {
+    @Override
+    public void logMigrationStart(String processDefinitionKey) {
 		log.info("Starting migration for instances with process definition key {}", processDefinitionKey);
-		
+
 	}
 
-	public void logMessageForInstancesBeforeMigration(String processDefinitionKey) {
+	@Override
+    public void logMessageForInstancesBeforeMigration(String processDefinitionKey) {
 		log.info("Process instances BEFORE migration with process definition key {}", processDefinitionKey);
-		
+
 	}
 
 	@Override
 	public void logMessageForInstancesAfterMigration(String processDefinitionKey) {
 		log.info("Process instances AFTER migration with process definition key {}", processDefinitionKey);
-		
+
 	}
 
 	@Override
@@ -28,23 +28,25 @@ public class MigratorLoggerDefaultImplementation implements MigratorLogger {
 			String businessKeys) {
 		log.info("processDefinitionId: {}, versionTag: {}, count {}, businessKeys: {}", processDefinitionId, versionTag,
 				numberOfInstances, businessKeys);
-		
+
 	}
 
-	public void logNoProcessInstancesDeployedWithKey(String processDefinitionKey) {
+	@Override
+    public void logNoProcessInstancesDeployedWithKey(String processDefinitionKey) {
 		log.info("No process definition with key {} deployed. No instances will be migrated", processDefinitionKey);
-		
+
 	}
 
-	public void logNoProcessInstancesDeployedWithVersionTag() {
-		log.info("No process definitions with a Version Tag deployed deployed. No instances will be migrated");
-		
+	@Override
+    public void logNewestDefinitionDoesNotHaveVersionTag(String processDefinitionKey) {
+		log.info("Newest process definition for process with key {} has no version tag. No instances will be migrated");
+
 	}
 
 	@Override
 	public void logNewestVersionInfo(String processDefinitionKey, String versionTag) {
 		 log.info("Newest version for process definition key {} is {}. Attempting migration.", processDefinitionKey, versionTag);
-		
+
 	}
 
 	@Override
@@ -52,7 +54,7 @@ public class MigratorLoggerDefaultImplementation implements MigratorLogger {
 			String versionTagNew) {
 		log.info("Successfully migrated process instance with id {} and businessKey {} from version {} to version {}",
 				processInstanceId, businessKey, versionTagOld, versionTagNew);
-		
+
 	}
 
 	@Override
@@ -63,7 +65,7 @@ public class MigratorLoggerDefaultImplementation implements MigratorLogger {
                 + "Target process definition id: {}\n",
 				processInstanceId, businessKey, versionTagOld, versionTagNew, processDefinitionIdOld,
 				processDefinitionIdNew, e);
-		
+
 	}
 
 	@Override
@@ -71,7 +73,7 @@ public class MigratorLoggerDefaultImplementation implements MigratorLogger {
 			String versionTagNew) {
 		log.warn("No Migration plan could be generated to migrate the process instance with the id {} and businessKey {} from version {} to version {}",
 				processInstanceId, businessKey, versionTagOld, versionTagNew);
-		
+
 	}
 
 }
