@@ -47,7 +47,9 @@ public class MigratorConfiguration {
     
     @Bean
     public ProcessInstanceMigrator processInstanceMigrator() {
-        return new ProcessInstanceMigrator(processEngine);
+        return ProcessInstanceMigrator.builder()
+        	.ofProcessEngine(processEngine())
+        	.build();
     }
         
 }
@@ -79,16 +81,16 @@ public class MigratorConfiguration {
     
     @Bean
     public ProcessInstanceMigrator processInstanceMigrator() {
-        ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine);
-        
-        //MigrationInstructions are required for minor migrations
-        processInstanceMigrator.setMigrationInstructions(generateMigrationInstructions());
-        return processInstanceMigrator;
+        ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder()
+        	.ofProcessEngine(processEngine())
+        	.withGetMigrationInstructions(generateMigrationInstructions())
+        	.build();
     }
     
     private MigrationInstructions generateMigrationInstructions(){
-        return MigrationInstructions.Builder()
-            .putInstructions("Some_process_definition_key, Arrays.asList(
+         //use the prepared way of specifying instructions or implement your own
+    	 return new MigrationInstructionsMap()
+    	 		.putInstructions("Some_process_definition_key, Arrays.asList(
 								MinorMigrationInstructions.builder()
 					        		.sourceMinorVersion(0)
 					        		.targetMinorVersion(2)					        		
@@ -96,8 +98,7 @@ public class MigratorConfiguration {
 					        		.migrationInstructions(Arrays.asList(
 					        				new MigrationInstructionImpl("UserTask1", "UserTask3"), 
 					        				new MigrationInstructionImpl("UserTask2", "UserTask3")))
-					        		.build()))
-        .build();
+					        		.build()));
     }
 }
 ```

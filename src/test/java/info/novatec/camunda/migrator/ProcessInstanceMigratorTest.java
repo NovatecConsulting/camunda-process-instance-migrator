@@ -29,7 +29,7 @@ public class ProcessInstanceMigratorTest {
 
     private static final String PROCESS_DEFINITION_KEY = "MigrateableProcess";
 
-    private ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine());
+    private ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder().ofProcessEngine(processEngine()).build();
 
     private ProcessDefinition initialProcessDefinition;
     private ProcessDefinition newestProcessDefinitionAfterRedeployment;
