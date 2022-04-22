@@ -1,8 +1,8 @@
-package info.novatec.camunda.migrator;
+package info.novatec.camunda.migrator.integration;
 
-import static info.novatec.camunda.migrator.TestHelper.*;
-import static info.novatec.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
-import static info.novatec.camunda.migrator.assertions.TaskListAsserter.assertThat;
+import static info.novatec.camunda.migrator.integration.TestHelper.*;
+import static info.novatec.camunda.migrator.integration.assertions.ProcessInstanceListAsserter.assertThat;
+import static info.novatec.camunda.migrator.integration.assertions.TaskListAsserter.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.AbstractAssertions.processEngine;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import info.novatec.camunda.migrator.ProcessInstanceMigrator;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionsMap;
 import info.novatec.camunda.migrator.instructions.MinorMigrationInstructions;
 

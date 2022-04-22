@@ -10,7 +10,7 @@ import org.camunda.bpm.engine.migration.MigrationInstruction;
 public class MigrationInstructionCombiner {
 
     /**
-     * Combines a list of {@link MinorMigrationInstruction} into a list of migration-ready
+     * Combines a list of {@link MinorMigrationInstructions} into a list of migration-ready
      * {@link MigrationInstruction}, thereby taking into account possible 'adding' of instructions that span multiple
      * minor versions.
      *

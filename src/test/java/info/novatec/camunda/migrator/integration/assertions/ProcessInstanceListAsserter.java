@@ -1,4 +1,4 @@
-package info.novatec.camunda.migrator.assertions;
+package info.novatec.camunda.migrator.integration.assertions;
 
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
