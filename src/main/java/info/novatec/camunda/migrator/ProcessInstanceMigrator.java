@@ -54,7 +54,7 @@ public class ProcessInstanceMigrator {
     }
 
     //TODO: make private
-    protected void migrateProcessInstances(String processDefinitionKey) {
+    public void migrateProcessInstances(String processDefinitionKey) {
     	migratorLogger.logMigrationStart(processDefinitionKey);
     	migratorLogger.logMessageForInstancesBeforeMigration(processDefinitionKey);
         logExistingProcessInstanceInfos(processDefinitionKey);
