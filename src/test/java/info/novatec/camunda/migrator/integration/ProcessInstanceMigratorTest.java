@@ -1,4 +1,4 @@
-package info.novatec.camunda.migrator;
+package info.novatec.camunda.migrator.integration;
 
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -7,9 +7,11 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static info.novatec.camunda.migrator.TestHelper.*;
-import static info.novatec.camunda.migrator.assertions.TaskListAsserter.assertThat;
-import static info.novatec.camunda.migrator.assertions.ProcessInstanceListAsserter.assertThat;
+import info.novatec.camunda.migrator.ProcessInstanceMigrator;
+
+import static info.novatec.camunda.migrator.integration.TestHelper.*;
+import static info.novatec.camunda.migrator.integration.assertions.ProcessInstanceListAsserter.assertThat;
+import static info.novatec.camunda.migrator.integration.assertions.TaskListAsserter.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat;
@@ -29,7 +31,7 @@ public class ProcessInstanceMigratorTest {
 
     private static final String PROCESS_DEFINITION_KEY = "MigrateableProcess";
 
-    private ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine());
+    private ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder().ofProcessEngine(processEngine()).build();
 
     private ProcessDefinition initialProcessDefinition;
     private ProcessDefinition newestProcessDefinitionAfterRedeployment;
@@ -335,7 +337,7 @@ public class ProcessInstanceMigratorTest {
 	        .numberOfProcessInstancesIs(2)
 	        .allProcessInstancesHaveDefinitionId(initialProcessDefinition.getId());
 
-	    assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY, taskService()))
+        assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY, taskService()))
 	        .numberOfTasksIs(2)
 	        .allTasksHaveDefinitionId(initialProcessDefinition.getId())
 	        .allTasksHaveFormkey(null);
@@ -346,7 +348,7 @@ public class ProcessInstanceMigratorTest {
 	        .numberOfProcessInstancesIs(2)
 	        .allProcessInstancesHaveDefinitionId(initialProcessDefinition.getId());
 
-	    assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY, taskService()))
+    	assertThat(getCurrentTasks(PROCESS_DEFINITION_KEY, taskService()))
 	        .numberOfTasksIs(2)
 	        .allTasksHaveDefinitionId(initialProcessDefinition.getId())
 	        .allTasksHaveFormkey(null);

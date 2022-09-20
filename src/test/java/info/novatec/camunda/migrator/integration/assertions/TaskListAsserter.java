@@ -1,4 +1,4 @@
-package info.novatec.camunda.migrator.assertions;
+package info.novatec.camunda.migrator.integration.assertions;
 
 import java.util.List;
 

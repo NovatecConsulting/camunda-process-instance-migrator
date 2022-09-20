@@ -20,7 +20,7 @@
 	
 	<groupId>info.novatec</groupId>
 	<artifactId>camunda-process-instance-migrator</artifactId>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.1.1-SNAPSHOT</version>
 
 	<name>Camunda Process Instance Migrator</name>
 	<description>Process Instance Migrator for Camunda BPM</description>
@@ -89,6 +89,13 @@
 		    <artifactId>camunda-bpm-assert</artifactId>
 		    <version>8.0.0</version>
 		    <scope>test</scope>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.camunda.bpm.extension.mockito</groupId>
+			<artifactId>camunda-bpm-mockito</artifactId>
+			<scope>test</scope>
+			<version>4.13.0</version>
 		</dependency>
 		
 		<!-- Project Lombok requires IDE extension! -->

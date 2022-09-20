@@ -52,4 +52,10 @@ public class ProcessVersion {
     public String toVersionTag() {
         return majorVersion + "." + minorVersion + "." + patchVersion;
     }
+
+    public boolean equals(ProcessVersion other) {
+        return this.majorVersion == other.majorVersion &&
+            this.minorVersion == other.minorVersion &&
+            this.patchVersion == other.patchVersion;
+    }
 }

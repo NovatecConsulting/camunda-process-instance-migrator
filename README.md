@@ -33,7 +33,7 @@ First, add the dependency:
 <dependency>
     <groupId>info.novatec</groupId>
     <artifactId>camunda-process-instance-migrator</artifactId>
-    <version>1.0.4</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 Secondly, initialise the migrator by injecting Camundas ProcessEngine. As long as you're only migrating on patch level and don't need to do minor migrations, there is no need for further configuration:
@@ -47,7 +47,9 @@ public class MigratorConfiguration {
     
     @Bean
     public ProcessInstanceMigrator processInstanceMigrator() {
-        return new ProcessInstanceMigrator(processEngine);
+        return ProcessInstanceMigrator.builder()
+        	.ofProcessEngine(processEngine())
+        	.build();
     }
         
 }
@@ -79,16 +81,16 @@ public class MigratorConfiguration {
     
     @Bean
     public ProcessInstanceMigrator processInstanceMigrator() {
-        ProcessInstanceMigrator processInstanceMigrator = new ProcessInstanceMigrator(processEngine);
-        
-        //MigrationInstructions are required for minor migrations
-        processInstanceMigrator.setMigrationInstructions(generateMigrationInstructions());
-        return processInstanceMigrator;
+        ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder()
+        	.ofProcessEngine(processEngine())
+        	.withGetMigrationInstructions(generateMigrationInstructions())
+        	.build();
     }
     
     private MigrationInstructions generateMigrationInstructions(){
-        return MigrationInstructions.builder()
-            .putInstructions("Some_process_definition_key", Arrays.asList(
+         //use the prepared way of specifying instructions or implement your own
+    	 return new MigrationInstructionsMap()
+    	 		.putInstructions("Some_process_definition_key", Arrays.asList(
 								MinorMigrationInstructions.builder()
 					        		.sourceMinorVersion(0)
 					        		.targetMinorVersion(2)					        		
@@ -96,13 +98,37 @@ public class MigratorConfiguration {
 					        		.migrationInstructions(Arrays.asList(
 					        				new MigrationInstructionImpl("UserTask1", "UserTask3"), 
 					        				new MigrationInstructionImpl("UserTask2", "UserTask3")))
-					        		.build()))
-        .build();
+					        		.build()));
     }
 }
 ```
 Note that every call of "putInstructions" corresponds to one specific migration (in this case going from 1.0.x to 1.2.x). This could, however, also be achieved by specifying instructions for migration from 1.0.x to 1.1.x and from 1.1.x to 1.2.x.
 Note that there is no necessity of actually having all versions deployed on a target environment. If you jump from 1.5.x to 1.8.x in, say, a productive environment, because intermediate versions were only deployed to earlier stages, it will still be sufficient to provide instructions that go from 1.5.x to 1.6.x, from 1.6.x to 1.7.x and from 1.7.x to 1.8.x. The migrator will interpret these instructions accordingly and skip the non-existent versions.
+
+## I need adjustments! What can I do?
+Of course you can always submit issues or create a pull request. But if you are looking for a quick change in functionality, it is recommended that you create your implementation of the interfaces that provide the migrators functionality. If, for example, you want to provide minor migration instructions via json file or you wish to modify logging, just provide your own implementation. For example:
+
+```java
+@Configuration
+public class MigratorConfiguration {
+
+    @Autowired
+    private ProcessEngine processEngine;
+    
+    @Bean
+    public ProcessInstanceMigrator processInstanceMigrator() {
+        ProcessInstanceMigrator processInstanceMigrator = ProcessInstanceMigrator.builder()
+        	.ofProcessEngine(processEngine())
+        	//CustomJsonMigrationInstructionReader implements GetMigrationInstructions
+        	.withGetMigrationInstructions(new CustomJsonMigrationInstructionReader())
+        	//CustomMigratorLogger implements MigratorLogger
+        	.withMigratorLogger(new CustomMigratorLogger())
+        	.build();
+    }
+    
+}
+```
+You may also provide custom implementations for how a patch migration plan is created, and for how the process instances, that are subject of migration, are determined.
 
 ## What limitations are there?
 
