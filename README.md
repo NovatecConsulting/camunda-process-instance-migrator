@@ -4,7 +4,7 @@ This tool will allow you to automatically or semi-automatically migrate all of y
 
 ## Why should I use this?
 
-If you develop process definition in an agile environment, your process definitions will change regularly. As soon as your process definitions are instantiated, be it in a test or productive environment, you would be advised to migrate them whenever a new process definition is released. 
+If you develop Process Models in an agile environment, these models will change regularly. As soon as the resulting process definitions are instantiated, be it in a test- or productive environment, you would be advised to migrate these created Process Instances whenever a new process definition is released. 
 This is for two reasons:
 1. Without migration your process instances will not gain the features added in the new release
 2. Without migration you are forced to maintain the existing Java API: you may not rename Java Delegates or change the signature of called Bean's methods. 
@@ -90,7 +90,7 @@ public class MigratorConfiguration {
     private MigrationInstructions generateMigrationInstructions(){
          //use the prepared way of specifying instructions or implement your own
     	 return new MigrationInstructionsMap()
-    	 		.putInstructions("Some_process_definition_key, Arrays.asList(
+    	 		.putInstructions("Some_process_definition_key", Arrays.asList(
 								MinorMigrationInstructions.builder()
 					        		.sourceMinorVersion(0)
 					        		.targetMinorVersion(2)					        		
@@ -134,7 +134,7 @@ You may also provide custom implementations for how a patch migration plan is cr
 
 The tool was developed and tested using Camunda 7.14 and subsequently updated to Camunda 7.15 and 7.16. It may not work with older versions but there will be releases compatible with newer versions of Camunda Platform.
 
-Required Java 8.
+Requires Java 8.
 
 There are also no restrictions to the specifiable migration instructions for minor migrations, unlike in the migration wizard of Camundas EE Cockpit. So this migrator will not prevent you from trying to migrate activities to different types of activities (i.e. from waitstates to non-waitstates or from receive tasks to user tasks). This might, however, result in undefined states and has not been tested whatsoever. So handle with care!
 
