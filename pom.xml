@@ -20,7 +20,7 @@
 	
 	<groupId>info.novatec</groupId>
 	<artifactId>camunda-process-instance-migrator</artifactId>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>1.1.1</version>
 
 	<name>Camunda Process Instance Migrator</name>
 	<description>Process Instance Migrator for Camunda BPM</description>
@@ -39,7 +39,7 @@
 		<url>https://github.com/NovatecConsulting/camunda-process-instance-migrator</url>
 		<connection>scm:git:git:/github.com/NovatecConsulting/camunda-process-instance-migrator.git</connection>
 		<developerConnection>scm:git:git@github.com:NovatecConsulting/camunda-process-instance-migrator.git</developerConnection>
-		<tag>1.0.0</tag>
+		<tag>1.1.1</tag>
 	</scm>
 	
 	<distributionManagement>
