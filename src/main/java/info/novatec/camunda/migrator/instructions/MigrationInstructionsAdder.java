@@ -3,28 +3,28 @@ package info.novatec.camunda.migrator.instructions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.camunda.bpm.engine.migration.MigrationInstruction;
-import org.camunda.bpm.engine.migration.MigrationPlan;
+import info.novatec.camunda.migrator.migration.CustomMigrationInstruction;
+import info.novatec.camunda.migrator.migration.CustomMigrationPlan;
 
 public class MigrationInstructionsAdder {
 
-    /**
-     * Modifies a given instance of {@link MigrationPlan} by adding a list of {@link MigrationInstruction}. Instructions
-     * that clash with the original plan will displace the originals, others will just be added.
-     *
-     * @param migrationPlan
-     *            the plan to be modified
-     * @param executableMigrationInstructions
-     *            the migration instructions to be added to the original plan
-     */
-	public static void addInstructions(MigrationPlan migrationPlan,
-			List<MigrationInstruction> executableMigrationInstructions) {
-		List<MigrationInstruction> migrationPlanList = migrationPlan.getInstructions();
-		List<MigrationInstruction> instructionsToBeAddedInTheEnd = new ArrayList<>();
-		//first overwrite default instructions with specified instructions
-		for(MigrationInstruction instruction : migrationPlanList) {
+	/**
+	 * Modifies a given instance of {@link CustomMigrationPlan} by adding a list of
+	 * {@link CustomMigrationInstruction}. Instructions that clash with the original
+	 * plan will displace the originals, others will just be added.
+	 *
+	 * @param migrationPlan                   the plan to be modified
+	 * @param executableMigrationInstructions the migration instructions to be added
+	 *                                        to the original plan
+	 */
+	public static void addInstructions(CustomMigrationPlan migrationPlan,
+			List<CustomMigrationInstruction> executableMigrationInstructions) {
+		List<CustomMigrationInstruction> migrationPlanList = migrationPlan.getInstructions();
+		List<CustomMigrationInstruction> instructionsToBeAddedInTheEnd = new ArrayList<>();
+		// first overwrite default instructions with specified instructions
+		for (CustomMigrationInstruction instruction : migrationPlanList) {
 			boolean specifiedMigrationWasAdded = false;
-			for (MigrationInstruction specifiedInstruction : executableMigrationInstructions) {
+			for (CustomMigrationInstruction specifiedInstruction : executableMigrationInstructions) {
 				if (instruction.getSourceActivityId().equals(specifiedInstruction.getSourceActivityId())) {
 					instructionsToBeAddedInTheEnd.add(specifiedInstruction);
 					specifiedMigrationWasAdded = true;
@@ -34,15 +34,17 @@ public class MigrationInstructionsAdder {
 				instructionsToBeAddedInTheEnd.add(instruction);
 			}
 		}
-		//then add all instructions for activities that are not handled in the default plan
-		for (MigrationInstruction specifiedInstruction : executableMigrationInstructions) {
+		// then add all instructions for activities that are not handled in the default
+		// plan
+		for (CustomMigrationInstruction specifiedInstruction : executableMigrationInstructions) {
 			boolean specifiedInstructionSourceWasHandledInDefaultPlan = false;
-			for(MigrationInstruction instruction : migrationPlanList) {
+			for (CustomMigrationInstruction instruction : migrationPlanList) {
 				if (instruction.getSourceActivityId().equals(specifiedInstruction.getSourceActivityId())) {
 					specifiedInstructionSourceWasHandledInDefaultPlan = true;
 				}
 			}
-			if (!specifiedInstructionSourceWasHandledInDefaultPlan && !instructionsToBeAddedInTheEnd.contains(specifiedInstruction)) {
+			if (!specifiedInstructionSourceWasHandledInDefaultPlan
+					&& !instructionsToBeAddedInTheEnd.contains(specifiedInstruction)) {
 				instructionsToBeAddedInTheEnd.add(specifiedInstruction);
 			}
 		}

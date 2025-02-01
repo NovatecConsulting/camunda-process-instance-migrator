@@ -8,6 +8,8 @@ import info.novatec.camunda.migrator.instructions.GetMigrationInstructions;
 import info.novatec.camunda.migrator.instructions.MigrationInstructionsMap;
 import info.novatec.camunda.migrator.logging.MigratorLogger;
 import info.novatec.camunda.migrator.logging.MigratorLoggerDefaultImpl;
+import info.novatec.camunda.migrator.migration.PerformMigration;
+import info.novatec.camunda.migrator.migration.PerformMigrationDefaultImpl;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplan;
 import info.novatec.camunda.migrator.plan.CreatePatchMigrationplanDefaultImpl;
 import lombok.NoArgsConstructor;
@@ -25,6 +27,7 @@ public class ProcessInstanceMigratorBuilder {
     private CreatePatchMigrationplan createPatchMigrationplanToSet;
     private MigratorLogger migratorLoggerToSet;
     private GetMigrationInstructions getMigrationInstructionsToSet;
+    private PerformMigration performMigration;
 
     public ProcessInstanceMigratorBuilder ofProcessEngine(ProcessEngine processEngine) {
         processEngineToSet = processEngine;
@@ -39,6 +42,9 @@ public class ProcessInstanceMigratorBuilder {
         }
         if (getMigrationInstructionsToSet == null) {
             this.getMigrationInstructionsToSet = new MigrationInstructionsMap();
+        }
+        if (performMigration == null) {
+        	this.performMigration = new PerformMigrationDefaultImpl(processEngine);
         }
         return this;
     }
@@ -72,6 +78,6 @@ public class ProcessInstanceMigratorBuilder {
         }
         return new ProcessInstanceMigrator(processEngineToSet, getOlderProcessInstancesToSet,
             createPatchMigrationplanToSet,
-            migratorLoggerToSet, getMigrationInstructionsToSet);
+            migratorLoggerToSet, getMigrationInstructionsToSet, performMigration);
     }
 }

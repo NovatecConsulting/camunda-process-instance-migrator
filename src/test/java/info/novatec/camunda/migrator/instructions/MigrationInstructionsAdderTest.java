@@ -7,8 +7,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.camunda.bpm.engine.migration.MigrationInstruction;
-import org.camunda.bpm.engine.migration.MigrationPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +17,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import info.novatec.camunda.migrator.migration.CustomMigrationInstruction;
+import info.novatec.camunda.migrator.migration.CustomMigrationPlan;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -32,24 +33,24 @@ public class MigrationInstructionsAdderTest {
     private static final String ACTIVITY_6 = "ReceiveTask2";
 
     @Mock
-    MigrationPlan migrationPlan;
+    CustomMigrationPlan migrationPlan;
 
     @Spy
-    List<MigrationInstruction> migrationPlanInstructionList = new ArrayList<>();
+    List<CustomMigrationInstruction> migrationPlanInstructionList = new ArrayList<>();
 
-    List<MigrationInstruction> instructionList;
+    List<CustomMigrationInstruction> instructionList;
 
     @Mock
-    MigrationInstruction migrationInstruction1;
+    CustomMigrationInstruction migrationInstruction1;
     @Mock
-    MigrationInstruction migrationInstruction2;
+    CustomMigrationInstruction migrationInstruction2;
     @Mock
-    MigrationInstruction migrationInstruction3;
+    CustomMigrationInstruction migrationInstruction3;
     @Mock
-    MigrationInstruction migrationInstruction4;
+    CustomMigrationInstruction migrationInstruction4;
 
     @Captor
-    private ArgumentCaptor<List<MigrationInstruction>> migrationInstructionCaptor;
+    private ArgumentCaptor<List<CustomMigrationInstruction>> migrationInstructionCaptor;
 
     @BeforeEach()
     void setUp() {
@@ -81,7 +82,7 @@ public class MigrationInstructionsAdderTest {
 
         verify(migrationPlanInstructionList).clear();
         verify(migrationPlanInstructionList).addAll(migrationInstructionCaptor.capture());
-        List<MigrationInstruction> newInstructions = migrationInstructionCaptor.getValue();
+        List<CustomMigrationInstruction> newInstructions = migrationInstructionCaptor.getValue();
 
         assertThat(newInstructions).hasSize(2);
         assertThat(newInstructions).anyMatch(instruction -> instruction.getSourceActivityId() == ACTIVITY_1
@@ -108,7 +109,7 @@ public class MigrationInstructionsAdderTest {
 
         verify(migrationPlanInstructionList).clear();
         verify(migrationPlanInstructionList).addAll(migrationInstructionCaptor.capture());
-        List<MigrationInstruction> newInstructions = migrationInstructionCaptor.getValue();
+        List<CustomMigrationInstruction> newInstructions = migrationInstructionCaptor.getValue();
 
         assertThat(newInstructions).hasSize(4);
         assertThat(newInstructions).anyMatch(instruction -> instruction.getSourceActivityId() == ACTIVITY_1

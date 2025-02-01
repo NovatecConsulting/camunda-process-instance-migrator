@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import info.novatec.camunda.migrator.migration.CustomMigrationInstruction;
+
 @ExtendWith(MockitoExtension.class)
 public class MigrationInstructionCombinerTest {
 
@@ -71,7 +73,7 @@ public class MigrationInstructionCombinerTest {
         when(migrationInstruction4.getSourceActivityId()).thenReturn(ACTIVITY_4);
         when(migrationInstruction4.getTargetActivityId()).thenReturn(ACTIVITY_6);
 
-        List<MigrationInstruction> result = MigrationInstructionCombiner.combineMigrationInstructions(
+        List<CustomMigrationInstruction> result = MigrationInstructionCombiner.combineMigrationInstructions(
             Arrays.asList(new MinorMigrationInstructions[] {migrationInstructions1To2, migrationInstructions2To3}));
 
         assertThat(result).hasSize(2);
@@ -97,7 +99,7 @@ public class MigrationInstructionCombinerTest {
         when(migrationInstruction4.getSourceActivityId()).thenReturn(ACTIVITY_7);
         when(migrationInstruction4.getTargetActivityId()).thenReturn(ACTIVITY_8);
 
-        List<MigrationInstruction> result = MigrationInstructionCombiner.combineMigrationInstructions(
+        List<CustomMigrationInstruction> result = MigrationInstructionCombiner.combineMigrationInstructions(
             Arrays.asList(new MinorMigrationInstructions[] {migrationInstructions1To2, migrationInstructions2To3}));
 
         assertThat(result).hasSize(4);
